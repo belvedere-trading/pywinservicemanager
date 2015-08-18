@@ -1,0 +1,100 @@
+## OS files
+# Mac OS X
+.DS_Store
+/Icon*
+._*
+#OS junk files
+[Tt]humbs.db
+*.DS_Store
+
+#Visual Studio files
+*.[Oo]bj
+*.exe
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.[Cc]ache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.sdf
+*.suo
+ipch/
+obj/
+[Bb]in
+Ankh.NoLoad
+
+#InstallShield
+[Ss]ingle[Ii]mage/
+[Dd][Vv][Dd]-5/
+[Ii]nterm/
+
+#Tooling
+_ReSharper*/
+*.resharper
+[Tt]est[Rr]esult*
+
+#Project files
+[Bb]uild/
+
+#Subversion files
+.svn
+
+# Office Temp Files
+~$*
+
+#kdiff3 temp files
+*.orig
+
+#sonar
+.sonar
+.coverage
+docs/doxygen/*
+
+#ctags
+.tags
+
+#vi temp files
+*.swp
+
+!TestLists
+#VS 2012 upgrade
+Backup
+UpgradeLog*.XML
+UpgradeLog*.htm
+_UpgradeReport_Files
+
+#Shared Directory
+Shared/*
+*.tmp_proj
+
+#KDevelop files
+*~
+*.kdev4
+
+#Vagrant Files
+.vagrant*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyc
+*.puo
+
+#Pycharm
+*.idea
+
+#Python
+*egg-info*/
+dist/

@@ -1,0 +1,4 @@
+include *.md
+include *.ps1
+include *.txt
+include example.py
