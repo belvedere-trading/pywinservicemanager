@@ -11,7 +11,8 @@ Python Windows Service Manager is a python package that helps to easily manage w
 
 ## Pre-requisites
     pywin32>=219
-
+    * **This cannot be installed via pypi.
+    This has to be the precompiled version.**
 ## Installation
 * Clone this repository
 * Put the repo dir in your PYTHONPATH
@@ -22,8 +23,8 @@ Python Windows Service Manager is a python package that helps to easily manage w
 
 ## How to run Unit Tests
 
-1.  pip install nose
-2.  From the module's root directory, run 'python ./testRunner.py'
+1.  pip install nose, mock
+2.  From the module's root directory, run 'nosetests .'
 
 ## Usage
 ---
