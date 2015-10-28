@@ -81,7 +81,7 @@ class ServiceConfigurations2(object):
             serviceConfig2Handle = win32service.OpenService(serviceConfigManagerHandle, self.ServiceName.StringValue(), win32service.SERVICE_CHANGE_CONFIG | win32service.SERVICE_START)
 
             for key, value in ServiceConfigurations2.Mappings.iteritems():
-                if currentConfigs[key] != self._configs[key]:
+                if currentConfigs[key] != self._configs[key] and self._configs[key] != None and self._configs[key].StringValue() != None:
                     ServiceConfigurations2.__SetConfigrations(serviceConfig2Handle, value, self._configs[key])
         except:
             raise
