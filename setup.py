@@ -11,5 +11,5 @@ setup(name='pywinservicemanager',
       description='Windows Service Manager Module that wraps for the win32service api',
       packages=find_packages(),
       long_description=open('README.rst').read(),
-      install_requires=['pywin32>=219'],
+      install_requires=['pypiwin32>=219'],
       tests_require=['mock', 'nose'])
