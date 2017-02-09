@@ -99,6 +99,23 @@ class TestServiceConfigurations2(unittest.TestCase):
         self.assertTrue(service == service1)
         self.assertTrue(service.Configurations == service1.Configurations)
 
+    def TestUpdateFailureActionsConfiguration(self):
+        configs = self.GetNewConfig2Params()
+        service = ServiceConfigurations2.GenerateFromOperatingSystem(-1, configs.ServiceName)
+        service2 = ServiceConfigurations2.GenerateFromOperatingSystem(-1, configs.ServiceName)
+
+        failureActionList = []
+        delay = 1000
+        failureActionList.append(FailureActionTypeFactory.CreateRestartAction(delay))
+        resetPeriod = 1
+        rebootMsg = None
+        commandLine = None
+        failureActions = FailureActionConfigurationType(failureActionList, resetPeriod, rebootMsg, commandLine)
+        service.UpdateConfiguration('FailureActions', failureActions)
+        service2.Configurations['FailureActions'] = failureActions
+
+        self.assertTrue(service, service2)
+
     def TestBothExistingAndNonExistingConfigDictsAreEqual(self):
         configs = self.GetNewConfig2Params()
         service = ServiceConfigurations2.GenerateFromOperatingSystem(-1, configs.ServiceName)

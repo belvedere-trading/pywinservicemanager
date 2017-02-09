@@ -7,12 +7,11 @@ Python Windows Service Manager is a python package that helps to easily manage w
  * Query a specific or all Service Statuses
  * Get a service configuration
  * Verify a service exists
- * Start, Stop, Pause, Continue, Interrogate a service
+ * Start, Stop, Restart, Pause, Continue, Interrogate a service
 
 ## Pre-requisites
-    pywin32>=219
-    * **This cannot be installed via pypi.
-    This has to be the precompiled version.**
+    pypiwin32>=219
+
 ## Installation
 * Clone this repository
 * Put the repo dir in your PYTHONPATH
@@ -264,7 +263,7 @@ You need to make sure that the commands Pause, Continue, and Interrogate are abl
      ```
 
 * **Start**: Deletes the Service
-  Starts a given service that has is stopped. If the service is not stopped, an exception will be thrown. Also, if the service does not return from the Start command within 30 seconds, a TimeoutException is thrown
+  Starts a given service that has is stopped. If the service is already started, the function will just return. Also, if the service does not return from the Start command within 30 seconds, a TimeoutException is thrown
 
    ```
    from pywinservicemanager.WindowsServiceConfigurationManager import GetService
@@ -276,13 +275,24 @@ You need to make sure that the commands Pause, Continue, and Interrogate are abl
      ```
 
 * **Stop**: Stops the Service
-  Stops a given service that is started. If the service is not started, an exception will be thrown. Also, if the service does not return from the Stop command within 30 seconds, a TimeoutException is thrown
+  Stops a given service that is started. If the service is stopped, the function will just return. Also, if the service does not return from the Stop command within 30 seconds, a TimeoutException is thrown
    ```
    from pywinservicemanager.WindowsServiceConfigurationManager import GetService
 
    serviceName = 'TestService'
    myService = WindowsServiceConfigurationManager.GetService(serviceName)
    myService.Stop()
+
+   ```
+
+* **Restart**: Restarts the Service
+  Restarts a given service that is started. If the service is stopped, this is equivelent to just calling start. If the service is running, then service will be stopped and then started. Also, if the service does not return from the Stop or Start command within 30 seconds, a TimeoutException is thrown
+   ```
+   from pywinservicemanager.WindowsServiceConfigurationManager import GetService
+
+   serviceName = 'TestService'
+   myService = WindowsServiceConfigurationManager.GetService(serviceName)
+   myService.Restart()
 
    ```
 
@@ -350,18 +360,18 @@ You need to make sure that the commands Pause, Continue, and Interrogate are abl
 Represents the action the service controller should take on each failure of a service. A service is considered failed when it terminates without reporting a status of SERVICE_STOPPED to the service controller
 
 The constructor of this object takes the following parameters:
-1. failureActionsTypeList
-    * Valid Value: List of FailureActionType Objects (see below)
-    * Default:Value None
-2. resetPeriodType: The time after which to reset the failure count to zero if there are no failures, in seconds
-    * Valid Value: int or ResetPeriodType(see below)
-    * Default:Value None
-3. rebootMessageType: The message to be broadcast to server users before rebooting in response to the SC_ACTION_REBOOT service controller action
-    * Valid Value: string or RebootMessageType (see below)
-    * Default:Value None
-4. commandLineType:  The command line of the process for the CreateProcess function to execute in response to the SC_ACTION_RUN_COMMAND service controller action. This process runs under the same account as the service.
-    * Valid Value: string or CommandLineType (see below)
-    * Default:Value None
+1.  failureActionsTypeList
+      * Valid Value: List of FailureActionType Objects (see below)
+      * Default:Value None
+2.  resetPeriodType: The time after which to reset the failure count to zero if there are no failures, in seconds
+      * Valid Value: int or ResetPeriodType(see below)
+      * Default:Value None
+3.  rebootMessageType: The message to be broadcast to server users before rebooting in response to the SC_ACTION_REBOOT service controller action
+      * Valid Value: string or RebootMessageType (see below)
+      * Default:Value None
+4.  commandLineType:  The command line of the process for the CreateProcess function to execute in response to the SC_ACTION_RUN_COMMAND service controller action. This process runs under the same account as the service.
+      * Valid Value: string or CommandLineType (see below)
+      * Default:Value None
 
 Example:
 ```
@@ -394,11 +404,11 @@ failureActions = ConfigurationTypes.FailureActionConfigurationType(failureAction
 Represents an action that the service control manager can perform.
 
 A FailureAction type can be reurned by the factory object FailureActionTypeFactory, where there are 4 methods defined and an int which represents the delaly as the input parameter:
-1. Factory Methods:
-    * FailureActionTypeFactory.CreateNoAction(delay): No action.
-    * FailureActionTypeFactory.CreateRestartAction(delay): Restart the service.
-    * FailureActionTypeFactory.CreateRebootAction(delay): Reboot the computer. If the service uses the reboot action, the caller must have the SE_SHUTDOWN_NAME [privilege](https://msdn.microsoft.com/en-us/library/windows/desktop/aa379306(v=vs.85).aspx). For more information, see [Running with Special Privileges.](https://msdn.microsoft.com/en-us/library/windows/desktop/ms717802(v=vs.85).aspx)
-    * FailureActionTypeFactory.CreateRunCommandAction(delay):  Run a command.
+1.  Factory Methods:
+      * FailureActionTypeFactory.CreateNoAction(delay): No action.
+      * FailureActionTypeFactory.CreateRestartAction(delay): Restart the service.
+      * FailureActionTypeFactory.CreateRebootAction(delay): Reboot the computer. If the service uses the reboot action, the caller must have the SE_SHUTDOWN_NAME [privilege](https://  msdn.microsoft.com/en-us/library/windows/desktop/aa379306(v=vs.85).aspx). For more information, see [Running with Special Privileges.](https://msdn.microsoft.com/en-us/library/  windows/  desktop/ms717802(v=vs.85).aspx)
+      * FailureActionTypeFactory.CreateRunCommandAction(delay):  Run a command.
 2.  delay: The time to wait before performing the specified action, in milliseconds.
 
 Example:
