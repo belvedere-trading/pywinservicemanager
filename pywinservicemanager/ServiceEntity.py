@@ -73,6 +73,10 @@ class ServiceEntity(object):
                 win32service.CloseServiceHandle(serviceHandle)
 
     def Start(self):
+        status = self.GetServiceStatus()
+        if status['CurrentState'].StringValue() == 'RUNNING':
+            return status
+
         serviceHandle = None
         try:
             serviceHandle = ServiceEntity.__getServiceHandle(self.ServiceName, self.__serviceConfigManagerHandle)
@@ -89,9 +93,14 @@ class ServiceEntity(object):
             win32service.CloseServiceHandle(serviceHandle)
 
     def Stop(self):
+        status = self.GetServiceStatus()
+        if status['CurrentState'].StringValue() == 'STOPPED':
+            return status
+
         serviceHandle = None
         try:
             serviceHandle = ServiceEntity.__getServiceHandle(self.ServiceName, self.__serviceConfigManagerHandle)
+
             win32service.ControlService(serviceHandle, win32service.SERVICE_CONTROL_STOP)
             start = time.time()
             status = self.GetServiceStatus()
@@ -105,7 +114,15 @@ class ServiceEntity(object):
             if serviceHandle:
                 win32service.CloseServiceHandle(serviceHandle)
 
+    def Restart(self):
+        self.Stop()
+        return self.Start()
+
     def Pause(self):
+        status = self.GetServiceStatus()
+        if status['CurrentState'].StringValue() == 'PAUSED':
+                return status
+
         serviceHandle = None
         try:
             serviceHandle = ServiceEntity.__getServiceHandle(self.ServiceName, self.__serviceConfigManagerHandle)

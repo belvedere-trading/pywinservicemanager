@@ -89,6 +89,10 @@ class ServiceConfigurations2(object):
             win32service.CloseServiceHandle(serviceConfig2Handle)
 
     def UpdateConfiguration(self, configurationName, value):
+        if configurationName == 'FailureActions':
+                self._configs[configurationName] = value
+                return
+
         self._configs[configurationName] = ConfigurationTypeFactory.CreateConfigurationType(configurationName, value)
 
     def __eq__(self, other):

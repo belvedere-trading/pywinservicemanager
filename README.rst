@@ -16,9 +16,7 @@ services. The following can be achieved using this package:
 ==============
 Pre-requisites
 ==============
-    pywin32>=219
-      * **This cannot be installed via pypi.
-        This has to be the precompiled version.**
+    pypiwin32>=219
 
 ============
 Installation
@@ -307,8 +305,8 @@ called.
 
 
 * **Start**: Deletes the Service
-  Starts a given service that has is stopped. If the service is not stopped, an
-  exception will be thrown. Also, if the service does not return from the Start
+  Starts a given service that has is stopped. If the service is running, the
+  function will just return. Also, if the service does not return from the Start
   command within 30 seconds, a TimeoutException is thrown
 
 .. code:: python
@@ -321,8 +319,8 @@ called.
 
 
 * **Stop**: Stops the Service
-  Stops a given service that is started. If the service is not started, an
-  exception will be thrown. Also, if the service does not return from the Stop
+  Stops a given service that is started. If the service is stopped, the function
+  will just return. Also, if the service does not return from the Stop
   command within 30 seconds, a TimeoutException is thrown
 
 .. code:: python
@@ -333,6 +331,19 @@ called.
    myService = WindowsServiceConfigurationManager.GetService(serviceName)
    myService.Stop()
 
+* **Restart**: Restart the Service
+  Restarts a given service that is started. If the service is stopped, this is
+  equivelent to just calling start. If the service is running, then service will
+  be stopped and then started. Also, if the service does not return from the
+  Stop or Start command within 30 seconds, a TimeoutException is thrown
+
+.. code:: python
+
+   from pywinservicemanager.WindowsServiceConfigurationManager import GetService
+
+   serviceName = 'TestService'
+   myService = WindowsServiceConfigurationManager.GetService(serviceName)
+   myService.Restart()
 
 * **Continue**: Continues the Service after it was paused
   Stops a given service that is Paused and/or has the value

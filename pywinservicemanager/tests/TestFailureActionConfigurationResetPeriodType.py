@@ -21,7 +21,7 @@ class TestFailureActionConfigurationResetPeriodType(unittest.TestCase):
         self.assertEquals(t.Win32Value(), value)
 
     def TestInitWithParametersOfNotValidValue(self):
-        self.assertRaises(ValueError, FailureActionConfigurationResetPeriodType, long(1))
+        self.assertRaises(ValueError, FailureActionConfigurationResetPeriodType, float(1))
 
     def TestInitWithCorrectParameters(self):
         value = int(1)
