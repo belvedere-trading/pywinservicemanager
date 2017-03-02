@@ -74,7 +74,7 @@ class ServiceEntity(object):
 
     def Start(self):
         status = self.GetServiceStatus()
-        if status['CurrentState'].StringValue() == 'RUNNING':
+        if status['CurrentState'].Win32Value() == status.RUNNING:
             return status
 
         serviceHandle = None
@@ -83,7 +83,7 @@ class ServiceEntity(object):
             win32service.StartService(serviceHandle, {})
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'RUNNING':
+            while status['CurrentState'].Win32Value() != status.RUNNING:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)
@@ -94,7 +94,7 @@ class ServiceEntity(object):
 
     def Stop(self):
         status = self.GetServiceStatus()
-        if status['CurrentState'].StringValue() == 'STOPPED':
+        if status['CurrentState'].Win32Value() == status.STOPPED:
             return status
 
         serviceHandle = None
@@ -104,7 +104,7 @@ class ServiceEntity(object):
             win32service.ControlService(serviceHandle, win32service.SERVICE_CONTROL_STOP)
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'STOPPED':
+            while status['CurrentState'].Win32Value() != status.STOPPED:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)
@@ -120,7 +120,7 @@ class ServiceEntity(object):
 
     def Pause(self):
         status = self.GetServiceStatus()
-        if status['CurrentState'].StringValue() == 'PAUSED':
+        if status['CurrentState'].Win32Value() == status.PAUSED:
                 return status
 
         serviceHandle = None
@@ -129,7 +129,7 @@ class ServiceEntity(object):
             win32service.ControlService(serviceHandle, win32service.SERVICE_CONTROL_PAUSE)
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'PAUSED':
+            while status['CurrentState'].Win32Value() != status.PAUSED:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)
@@ -146,7 +146,7 @@ class ServiceEntity(object):
             win32service.ControlService(serviceHandle, win32service.SERVICE_CONTROL_CONTINUE)
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'RUNNING':
+            while status['CurrentState'].Win32Value() != status.RUNNING:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)

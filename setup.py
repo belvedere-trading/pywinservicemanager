@@ -7,7 +7,7 @@ if is_windows:
       required_packages = ['pypiwin32>=219']
 
 setup(name='pywinservicemanager',
-      version='1.0.3',
+      version='1.0.4',
       author='Team Belvedere, LLC',
       author_email='opensource@belvederetrading.com',
       url='https://github.com/belvedere-trading/pywinservicemanager',

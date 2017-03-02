@@ -1,7 +1,6 @@
 import win32service
 import abc
 
-
 class ConfigurationBase(object):
     """ This class is the base class for all 'Configruations'. The basic idea of this
         base class is to 'box', the term being loosely used here, all of the constants to have easily readable
@@ -17,37 +16,46 @@ class ConfigurationBase(object):
         '''
         raise NotImplementedError()
 
-    def __init__(self, value, parameterName, listOfExceptableTypes, isWin32Value=False):
+    def __init__(self, cls, value, listOfValidTypes, isWin32Value=False):
+        self._className = cls.__class__.__name__
+        self._mappings = cls._getPropertiesAsDict()
+
         if isWin32Value:
-            self.value = self.__getWin32Value(value)
+            self.value = self._getWin32Value(value)
             return
 
-        self.__validateMappedValue(value, parameterName, listOfExceptableTypes)
+        self.__validateMappedValue(value, listOfValidTypes)
         self.value = value
 
-    def __getWin32Value(self, value):
+    def _getWin32Value(self, value):
         '''
             Should be used internally to the class. This method will return the human readable value given
-            a valid win32 constant for the cofiguration in question
+            a valid win32 constant for the configuration in question
         '''
-        if self.Mappings == None:
+        if not self._mappings:
             return value
-        if value != None and value not in self.Mappings.values():
-            ConfigurationBase.__raiseMappingErrorException(self.Mappings, parameterName, value, isWin32Value=True)
+
+        if value != None and value not in self._mappings.values():
+            ConfigurationBase.__raiseMappingErrorException(self.Mappings, self._className, value, isWin32Value=True)
         for key, win32value in self.Mappings.iteritems():
             if win32value == value:
                 return key
 
-    def __validateMappedValue(self, value, parameterName, listOfExceptableTypes):
+    def __validateMappedValue(self, value, listOfValidTypes):
         '''
             Should be used internally to the class. This method validates that the value passed
             is a valid string that is mapped to a constant. If the value is invalid, and exception will be raised.
         '''
-        ConfigurationBase.__validateTypes(value, parameterName, listOfExceptableTypes)
-        if self.Mappings is None:
+        ConfigurationBase.__validateTypes(value, self._className, listOfValidTypes)
+        if not self._mappings:
             return
-        if value != None and value not in self.Mappings.keys():
-            ConfigurationBase.__raiseMappingErrorException(self.Mappings, parameterName, value, isWin32Value=False)
+        if value != None and value not in self._mappings.keys():
+            ConfigurationBase.__raiseMappingErrorException(self._mappings, self._className, value, isWin32Value=False)
+
+    @classmethod
+    def _getPropertiesAsDict(self):
+        return dict((key, value) for (key, value) in self._DerivedType().__dict__.items()
+                    if not key.startswith('_') and not callable(value) and key !='Mappings')
 
     @abc.abstractmethod
     def StringValue(self):
@@ -95,22 +103,25 @@ class ConfigurationBase(object):
         raise ValueError(errorMsg)
 
     @staticmethod
-    def __validateTypes(value, parameterName, validTypes):
+    def __validateTypes(value, derivedClassName, validTypes):
         '''
             Should be used internally to the class. This method does type checking for the given configuration. If the type of the value is passed is invalid,
             an excpetion will be raised.
         '''
-        if len(validTypes) == 0:
+        if not validTypes or len(validTypes) == 0:
             return True
 
-        isInvalid = True
+        isValid = False
         for validType in validTypes:
-            isInvalid = isInvalid and not isinstance(value, validType)
+            if isinstance(value, validType):
+                isValid = True
 
-        if isInvalid:
-            validTypesString = ','.format(validTypes)
-            errorMsg = 'The parameter {0} is not a valid type. Valid Typs are : {1}. Type received {2}'.format(parameterName, validTypesString, type(value))
+        if not isValid:
+            validTypesAsStrings = [validType.__name__ for validType in validTypes]
+            validTypesString = ','.join(validTypesAsStrings)
+            errorMsg = '{0} is not a valid type. Valid Types are : {1}. Type received {2}'.format(derivedClassName, validTypesString, type(value))
             raise ValueError(errorMsg)
+        return True
 
 
 class ConfigurationTypeFactory(object):
@@ -147,7 +158,7 @@ class ConfigurationTypeFactory(object):
             return typeMappings[typeName](value, isWin32Value)
 
         validValues = ','.join(typeMappings.keys())
-        errorMsg = 'The parameter typeName is not a valid value. Value Passed: {0}. Valid values are : {1}'.format(actionTypeString, validValues)
+        errorMsg = 'The parameter typeName is not a valid value. Value Passed: {0}. Valid values are : {1}'.format(value, validValues)
         raise ValueError(errorMsg)
 
 
@@ -186,7 +197,7 @@ class BinaryPathNameType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [str, unicode]
-        super(BinaryPathNameType, self).__init__(value, 'BinaryPathName', validTypes, isWin32Value)
+        super(BinaryPathNameType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -207,7 +218,7 @@ class CheckPointType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int]
-        super(CheckPointType, self).__init__(value, 'CheckPoint', validTypes, isWin32Value)
+        super(CheckPointType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -221,32 +232,31 @@ ConfigurationBase.register(CheckPointType)
 
 
 class ControlsAcceptedType(ConfigurationBase):
+    ACCEPT_NETBINDCHANGE = win32service.SERVICE_ACCEPT_NETBINDCHANGE
+    ACCEPT_PARAMCHANGE = win32service.SERVICE_ACCEPT_PARAMCHANGE
+    ACCEPT_PAUSE_CONTINUE = win32service.SERVICE_ACCEPT_PAUSE_CONTINUE
+    ACCEPT_PRESHUTDOWN = win32service.SERVICE_ACCEPT_PRESHUTDOWN
+    ACCEPT_SHUTDOWN = win32service.SERVICE_ACCEPT_SHUTDOWN
+    ACCEPT_STOP = win32service.SERVICE_ACCEPT_STOP
+    ACCEPT_HARDWAREPROFILECHANGE = win32service.SERVICE_ACCEPT_HARDWAREPROFILECHANGE
+    ACCEPT_POWEREVENT = win32service.SERVICE_ACCEPT_POWEREVENT
+    ACCEPT_SESSIONCHANGE = win32service.SERVICE_ACCEPT_SESSIONCHANGE
 
     @property
     def Mappings(self):
         return None
 
-    _bitMaskValues = {'ACCEPT_NETBINDCHANGE': win32service.SERVICE_ACCEPT_NETBINDCHANGE,
-                       'ACCEPT_PARAMCHANGE': win32service.SERVICE_ACCEPT_PARAMCHANGE,
-                       'ACCEPT_PAUSE_CONTINUE': win32service.SERVICE_ACCEPT_PAUSE_CONTINUE,
-                       'ACCEPT_PRESHUTDOWN': win32service.SERVICE_ACCEPT_PRESHUTDOWN,
-                       'ACCEPT_SHUTDOWN': win32service.SERVICE_ACCEPT_SHUTDOWN,
-                       'ACCEPT_STOP': win32service.SERVICE_ACCEPT_STOP,
-                       'ACCEPT_HARDWAREPROFILECHANGE': win32service.SERVICE_ACCEPT_HARDWAREPROFILECHANGE,
-                       'ACCEPT_POWEREVENT': win32service.SERVICE_ACCEPT_POWEREVENT,
-                       'ACCEPT_SESSIONCHANGE': win32service.SERVICE_ACCEPT_SESSIONCHANGE }
-
     @property
     def Types(self):
         returnValue = []
-        for key, value in self._bitMaskValues.iteritems():
+        for key, value in self._getPropertiesAsDict().iteritems():
             if (value & self.value) == value:
                 returnValue.append(key)
         return returnValue
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int]
-        super(ControlsAcceptedType, self).__init__(value, 'ControlsAcceptedType', validTypes, isWin32Value)
+        super(ControlsAcceptedType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -259,17 +269,21 @@ ConfigurationBase.register(ControlsAcceptedType)
 
 
 class CurrentStateType(ConfigurationBase):
-    Mappings = {'CONTINUE_PENDING': win32service.SERVICE_CONTINUE_PENDING,
-                'PAUSE_PENDING': win32service.SERVICE_PAUSE_PENDING,
-                'PAUSED': win32service.SERVICE_PAUSED,
-                'RUNNING': win32service.SERVICE_RUNNING,
-                'START_PENDING': win32service.SERVICE_START_PENDING,
-                'STOP_PENDING': win32service.SERVICE_STOP_PENDING,
-                'STOPPED': win32service.SERVICE_STOPPED}
+    CONTINUE_PENDING = win32service.SERVICE_CONTINUE_PENDING
+    PAUSE_PENDING = win32service.SERVICE_PAUSE_PENDING
+    PAUSED = win32service.SERVICE_PAUSED
+    RUNNING = win32service.SERVICE_RUNNING
+    START_PENDING = win32service.SERVICE_START_PENDING
+    STOP_PENDING = win32service.SERVICE_STOP_PENDING
+    STOPPED = win32service.SERVICE_STOPPED
+
+    @property
+    def Mappings(self):
+        return self._getPropertiesAsDict()
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int, str]
-        super(CurrentStateType, self).__init__(value, 'CurrentStateType', validTypes, isWin32Value)
+        super(CurrentStateType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -278,6 +292,7 @@ class CurrentStateType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.Mappings[self.value]
+
 ConfigurationBase.register(CurrentStateType)
 
 
@@ -291,7 +306,7 @@ class DelayedAutoStartInfoType(ConfigurationBase):
         if value is None:
             value = False
         validTypes = [bool]
-        super(DelayedAutoStartInfoType, self).__init__(value, 'DelayedAutoStartInfo', validTypes, isWin32Value)
+        super(DelayedAutoStartInfoType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -311,7 +326,7 @@ class DependenciesType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [list, type(None)]
-        super(DependenciesType, self).__init__(value, 'Dependencies', validTypes, isWin32Value)
+        super(DependenciesType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -331,7 +346,7 @@ class DescriptionType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [unicode, str, type(None)]
-        super(DescriptionType, self).__init__(value, 'Description', validTypes, isWin32Value)
+        super(DescriptionType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -351,7 +366,7 @@ class DisplayNameType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [unicode, str]
-        super(DisplayNameType, self).__init__(value, 'DisplayName', validTypes, isWin32Value)
+        super(DisplayNameType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -364,16 +379,20 @@ ConfigurationBase.register(DisplayNameType)
 
 
 class ErrorControlType(ConfigurationBase):
-    Mappings = {'ERROR_IGNORE': win32service.SERVICE_ERROR_IGNORE,
-                'ERROR_NORMAL': win32service.SERVICE_ERROR_NORMAL,
-                'ERROR_SEVERE': win32service.SERVICE_ERROR_SEVERE,
-                'ERROR_CRITICAL': win32service.SERVICE_ERROR_CRITICAL}
+    ERROR_IGNORE = win32service.SERVICE_ERROR_IGNORE
+    ERROR_NORMAL = win32service.SERVICE_ERROR_NORMAL
+    ERROR_SEVERE = win32service.SERVICE_ERROR_SEVERE
+    ERROR_CRITICAL = win32service.SERVICE_ERROR_CRITICAL
+
+    @property
+    def Mappings(self):
+        return self._getPropertiesAsDict()
 
     def __init__(self, value, isWin32Value=False):
         if value is None:
             value='ERROR_NORMAL'
         validTypes = []
-        super(ErrorControlType, self).__init__(value, 'ErrorControl', validTypes, isWin32Value)
+        super(ErrorControlType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -393,7 +412,7 @@ class FailureActionConfigurationCommandLineType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [str, unicode, type(None)]
-        super(FailureActionConfigurationCommandLineType, self).__init__(value, 'FailureActionCommandLine', validTypes, isWin32Value)
+        super(FailureActionConfigurationCommandLineType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -413,7 +432,7 @@ class FailureActionConfigurationRebootMessageType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [str, unicode, type(None)]
-        super(FailureActionConfigurationRebootMessageType, self).__init__(value, 'FailureActionConfigurationRebootMessage', validTypes, isWin32Value)
+        super(FailureActionConfigurationRebootMessageType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -433,7 +452,7 @@ class FailureActionConfigurationResetPeriodType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int, type(None)]
-        super(FailureActionConfigurationResetPeriodType, self).__init__(value, 'FailureActionConfigurationResetPeriod', validTypes, isWin32Value)
+        super(FailureActionConfigurationResetPeriodType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -453,7 +472,7 @@ class FailureActionConfigurationType(ConfigurationBase):
 
     def __init__(self, failureActionsTypeList = None, resetPeriodType = None, rebootMessageType = None, commandLineType = None, isWin32Value=False):
         self.__validateFailureActionsTypeListParameter(failureActionsTypeList)
-        super(FailureActionConfigurationType, self).__init__(None, 'FailureActionConfiguration', [], isWin32Value)
+        super(FailureActionConfigurationType, self).__init__(self, None, [], isWin32Value)
 
         if failureActionsTypeList is None:
             failureActionsTypeList = []
@@ -552,7 +571,7 @@ class FailureActionDelayType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int, long, type(None)]
-        super(FailureActionDelayType, self).__init__(value, 'FailureActionDelay', validTypes, isWin32Value)
+        super(FailureActionDelayType, self).__init__(self, value, validTypes, isWin32Value)
         if not value  is None:
             value = long(value)
 
@@ -567,16 +586,19 @@ ConfigurationBase.register(FailureActionDelayType)
 
 
 class FailureActionExecutionType(ConfigurationBase):
+    NONE = win32service.SC_ACTION_NONE
+    RESTART = win32service.SC_ACTION_RESTART
+    REBOOT = win32service.SC_ACTION_REBOOT
+    RUN_COMMAND = win32service.SC_ACTION_RUN_COMMAND
 
-    Mappings = {'NONE': win32service.SC_ACTION_NONE,
-                'RESTART': win32service.SC_ACTION_RESTART,
-                'REBOOT': win32service.SC_ACTION_REBOOT,
-                'RUN_COMMAND': win32service.SC_ACTION_RUN_COMMAND}
+    @property
+    def Mappings(self):
+        return self._getPropertiesAsDict()
 
     def __init__(self, value, isWin32Value=False):
         if value is None:
             value = 'NONE'
-        super(FailureActionExecutionType, self).__init__(value, 'FailureActionExecution', [], isWin32Value)
+        super(FailureActionExecutionType, self).__init__(self, value, [], isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -599,7 +621,7 @@ class FailureActionType(ConfigurationBase):
             msg = 'The argument "failureActionExecutionType" and "failureActionDelayType" are not of the types of their namesakes, and should be. failureActionExecutionType is of type {0} and failureActionDelayType is of type of {1}'
             raise ValueError(msg.format(type(failureActionExecutionType).__name__, type(failureActionDelayType).__name__))
 
-        super(FailureActionType, self).__init__(None, 'FailureAction', [], isWin32Value)
+        super(FailureActionType, self).__init__(self, None, [], isWin32Value)
         self.__failureActionExecutionType = failureActionExecutionType if failureActionExecutionType else FailureActionExecutionType(None)
         self.__failureActionDelayType = failureActionDelayType if failureActionDelayType else FailureActionDelayType(None)
 
@@ -629,7 +651,7 @@ class FailureFlagType(ConfigurationBase):
         if value is None:
             value = False
         validTypes = [bool]
-        super(FailureFlagType, self).__init__(value, 'FailureFlag', validTypes, isWin32Value)
+        super(FailureFlagType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -653,7 +675,7 @@ class LoadOrderGroupType(ConfigurationBase):
         if value is None:
             value = unicode('')
         validTypes = [unicode, str, type(None)]
-        super(LoadOrderGroupType, self).__init__(value, 'LoadOrderGroup', validTypes, isWin32Value)
+        super(LoadOrderGroupType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -675,7 +697,7 @@ class PreShutdownInfoType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int, long, type(None)]
-        super(PreShutdownInfoType, self).__init__(value, 'PreShutdownInfo', validTypes, isWin32Value)
+        super(PreShutdownInfoType, self).__init__(self, value, validTypes, isWin32Value)
 
         if isinstance(value, int):
             value = long(value)
@@ -698,7 +720,7 @@ class ProcessIdType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int]
-        super(ProcessIdType, self).__init__(value, 'ProcessId', validTypes, isWin32Value)
+        super(ProcessIdType, self).__init__(self, value, 'ProcessId', validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -718,7 +740,7 @@ class ServiceFlagsType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int]
-        super(ServiceFlagsType, self).__init__(value, 'ServiceFlags', validTypes, isWin32Value)
+        super(ServiceFlagsType, self).__init__(self, value, 'ServiceFlags', validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -738,7 +760,7 @@ class ServiceNameType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [unicode, str]
-        super(ServiceNameType, self).__init__(value, 'ServiceName', validTypes, isWin32Value)
+        super(ServiceNameType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -751,14 +773,18 @@ ConfigurationBase.register(ServiceNameType)
 
 
 class ServiceSIDInfoType(ConfigurationBase):
-    Mappings = {'SID_TYPE_NONE': win32service.SERVICE_SID_TYPE_NONE,
-                'SID_TYPE_RESTRICTED': win32service.SERVICE_SID_TYPE_RESTRICTED,
-                'SID_TYPE_UNRESTRICTED': win32service.SERVICE_SID_TYPE_UNRESTRICTED}
+    SID_TYPE_NONE = win32service.SERVICE_SID_TYPE_NONE
+    SID_TYPE_RESTRICTED = win32service.SERVICE_SID_TYPE_RESTRICTED
+    SID_TYPE_UNRESTRICTED = win32service.SERVICE_SID_TYPE_UNRESTRICTED
 
     def __init__(self, value, isWin32Value=False):
         if value is None:
             value = 'SID_TYPE_NONE'
-        super(ServiceSIDInfoType, self).__init__(value, 'ServiceSIDInfo', [], isWin32Value)
+        super(ServiceSIDInfoType, self).__init__(self, value, [str], isWin32Value)
+
+    @property
+    def Mappings(self):
+        return self._getPropertiesAsDict()
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -778,7 +804,7 @@ class ServiceStartNameType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [unicode, str, type(None)]
-        super(ServiceStartNameType, self).__init__(value, 'ServiceStartName', validTypes, isWin32Value)
+        super(ServiceStartNameType, self).__init__(self, value, validTypes, isWin32Value)
 
         if value is None:
            self.value = u'LocalSystem'
@@ -794,16 +820,20 @@ ConfigurationBase.register(ServiceStartNameType)
 
 
 class ServiceStartType(ConfigurationBase):
-    Mappings = {'AUTO_START': win32service.SERVICE_AUTO_START,
-                'DEMAND_START': win32service.SERVICE_DEMAND_START,
-                'BOOT_START': win32service.SERVICE_BOOT_START,
-                'DISABLED': win32service.SERVICE_DISABLED,
-                'SYSTEM_START': win32service.SERVICE_SYSTEM_START}
+    AUTO_START = win32service.SERVICE_AUTO_START
+    DEMAND_START = win32service.SERVICE_DEMAND_START
+    BOOT_START = win32service.SERVICE_BOOT_START
+    DISABLED = win32service.SERVICE_DISABLED
+    SYSTEM_START = win32service.SERVICE_SYSTEM_START
+
+    @property
+    def Mappings(self):
+        return self._getPropertiesAsDict()
 
     def __init__(self, value, isWin32Value=False):
         if value is None:
             value = 'DEMAND_START'
-        super(ServiceStartType, self).__init__(value, 'ServiceStart', [], isWin32Value)
+        super(ServiceStartType, self).__init__(self, value, [], isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -816,17 +846,21 @@ ConfigurationBase.register(ServiceStartType)
 
 
 class ServiceType(ConfigurationBase):
-    Mappings = {'WIN32_SHARE_PROCESS': win32service.SERVICE_WIN32_SHARE_PROCESS,
-                'WIN32_OWN_PROCESS': win32service.SERVICE_WIN32_OWN_PROCESS,
-                'KERNEL_DRIVER': win32service.SERVICE_KERNEL_DRIVER,
-                'FILE_SYSTEM_DRIVER': win32service.SERVICE_FILE_SYSTEM_DRIVER,
-                'INTERACTIVE_SHARE_PROCESS': win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_SHARE_PROCESS,
-                'INTERACTIVE_OWN_PROCESS': win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_OWN_PROCESS}
+    WIN32_SHARE_PROCESS =  win32service.SERVICE_WIN32_SHARE_PROCESS
+    WIN32_OWN_PROCESS =  win32service.SERVICE_WIN32_OWN_PROCESS
+    KERNEL_DRIVER =  win32service.SERVICE_KERNEL_DRIVER
+    FILE_SYSTEM_DRIVER =  win32service.SERVICE_FILE_SYSTEM_DRIVER
+    INTERACTIVE_SHARE_PROCESS =  win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_SHARE_PROCESS
+    INTERACTIVE_OWN_PROCESS =  win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_OWN_PROCESS
+
+    @property
+    def Mappings(self):
+        return self._getPropertiesAsDict()
 
     def __init__(self, value, isWin32Value=False):
         if value is None:
             value = 'WIN32_OWN_PROCESS'
-        super(ServiceType, self).__init__(value, 'ServiceType', [], isWin32Value)
+        super(ServiceType, self).__init__(self, value, [], isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -845,7 +879,7 @@ class TagIdType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        super(TagIdType, self).__init__(value, 'TagId', [], isWin32Value)
+        super(TagIdType, self).__init__(self, value, [], isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -864,7 +898,7 @@ class WaitHintType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        super(WaitHintType, self).__init__(value, 'WaitHint', [int], isWin32Value)
+        super(WaitHintType, self).__init__(self, value, [int], isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -883,7 +917,7 @@ class Win32ExitCodeType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        super(Win32ExitCodeType, self).__init__(value, 'Win32ExitCode', [int], isWin32Value)
+        super(Win32ExitCodeType, self).__init__(self, value, [int], isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""

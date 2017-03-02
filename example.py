@@ -75,20 +75,15 @@ if __name__ == '__main__':
             print '\n\nThese 2 services sould be that same'
             pprint.pprint(service1 == service2)
 
-            #Start the service, but you need to make sure that the current state is stopped, otherwise an error will be thrown
             status  = service2.GetServiceStatus()
-            if status['CurrentState'].StringValue() == 'STOPPED':
-                status = service2.Start()
-                print '\n\nGetting status after Start'
-                pprint.pprint(status)
+            status = service2.Start()
+            print '\n\nGetting status after Start'
+            pprint.pprint(status)
 
             print ''
-            #Stop the service, but you need to make sure that the current state is running, otherwise an error will be thrown
-            status  = service2.GetServiceStatus()
-            if status['CurrentState'].StringValue() == 'RUNNING':
-                status = service2.Stop()
-                print '\n\nGetting status after Stop'
-                pprint.pprint(status)
+            status = service2.Stop()
+            print '\n\nGetting status after Stop'
+            pprint.pprint(status)
 
             #Pause Service if that command is accepted by the service
             status = service2.GetServiceStatus()
@@ -119,10 +114,9 @@ if __name__ == '__main__':
             #Service2 now has 2 different configurations
             assert (service2 != service1)
 
-            #delete Service
-            status  = service2.GetServiceStatus()
-            if status['CurrentState'].StringValue() == 'RUNNING':
-                status = service2.Stop()
+            #Delete Service. If the service is not stopped, the OS will mark the delete as pending until
+            #the service is stopped
+            status = service2.Stop()
             service2.Delete()
             print '\n\nDeleted Service'
 
