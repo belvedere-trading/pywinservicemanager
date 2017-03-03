@@ -18,7 +18,7 @@ class ConfigurationBase(object):
 
     def __init__(self, cls, value, listOfValidTypes, isWin32Value=False):
         self._className = cls.__class__.__name__
-        self._mappings = cls._getPropertiesAsDict()
+        self._mappings = cls.Mappings
 
         if isWin32Value:
             self.value = self._getWin32Value(value)
@@ -36,8 +36,8 @@ class ConfigurationBase(object):
             return value
 
         if value != None and value not in self._mappings.values():
-            ConfigurationBase.__raiseMappingErrorException(self.Mappings, self._className, value, isWin32Value=True)
-        for key, win32value in self.Mappings.iteritems():
+            ConfigurationBase.__raiseMappingErrorException(self._mappings, self._className, value, isWin32Value=True)
+        for key, win32value in self._mappings.iteritems():
             if win32value == value:
                 return key
 
@@ -250,6 +250,8 @@ class ControlsAcceptedType(ConfigurationBase):
     def Types(self):
         returnValue = []
         for key, value in self._getPropertiesAsDict().iteritems():
+            if key == 'Types':
+                continue
             if (value & self.value) == value:
                 returnValue.append(key)
         return returnValue
@@ -720,7 +722,7 @@ class ProcessIdType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int]
-        super(ProcessIdType, self).__init__(self, value, 'ProcessId', validTypes, isWin32Value)
+        super(ProcessIdType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -740,7 +742,7 @@ class ServiceFlagsType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         validTypes = [int]
-        super(ServiceFlagsType, self).__init__(self, value, 'ServiceFlags', validTypes, isWin32Value)
+        super(ServiceFlagsType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
