@@ -209,8 +209,10 @@ class ServiceEntity(object):
                 serviceConfigManagerHandle = win32service.OpenSCManager('', None, win32service.SC_MANAGER_ALL_ACCESS)
                 serviceHandle = ServiceEntity.__getServiceHandle(serviceName, serviceConfigManagerHandle)
             return True
-        except Exception, e:
+        except NoServiceExistsException:
             return False
+        except Exception:
+            raise
         finally:
             if serviceHandle:
                 win32service.CloseServiceHandle(serviceHandle)
@@ -228,7 +230,7 @@ class ServiceEntity(object):
                 # try again with different access right
                 pass
 
-        raise Exception('Service Name {0} does not exists'.format(self.ServiceName))
+        raise NoServiceExistsException(serviceName)
 
 
     def __eq__(self, other):
@@ -240,6 +242,11 @@ class ServiceEntity(object):
     def __ne__(self, other):
         result = self.__eq__(other)
         return not result
+
+class NoServiceExistsException(Exception):
+    def __init__(self, serviceName):
+        message = "The service {} does not exists".format(serviceName)
+        super(NoServiceExistsException, self).__init__(message)
 
 class TimeoutException(Exception):
     def __init__(self, message='The service did not respond to the start or control request in a timely fashion.', errors = None):
