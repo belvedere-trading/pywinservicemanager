@@ -1,4 +1,3 @@
-import win32service
 from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
 
 class ServiceStatusProcessEntity(object):

@@ -2,12 +2,13 @@ from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
 from pywinservicemanager.ConfigurationTypes import FailureActionConfigurationType
 
 
+#pylint: disable=R0902,R0913,R0914
 class NewServiceDefinition(object):
     def __init__(self, serviceName, displayName, binaryPathName, startType=None,
-                      serviceType=None, errorControl=None, loadOrderGroup=None,
-                      dependencies=None, serviceStartName=None, description=None,
-                      failureActions=None, failureFlag=None, preShutdownInfo=None,
-                      serviceSIDInfo=None, delayedAutoStartInfo=False):
+                 serviceType=None, errorControl=None, loadOrderGroup=None,
+                 dependencies=None, serviceStartName=None, description=None,
+                 failureActions=None, failureFlag=None, preShutdownInfo=None,
+                 serviceSIDInfo=None, delayedAutoStartInfo=False):
 
         self.__valdateFailureActions(failureActions)
 
@@ -27,6 +28,8 @@ class NewServiceDefinition(object):
         self.ServiceSIDInfo = ConfigurationTypeFactory.CreateConfigurationType('ServiceSIDInfo', serviceSIDInfo)
         self.DelayedAutoStartInfo = ConfigurationTypeFactory.CreateConfigurationType('DelayedAutoStartInfo', delayedAutoStartInfo)
 
-    def __valdateFailureActions(self, failureActions):
+    @staticmethod
+    def __valdateFailureActions(failureActions):
         if not isinstance(failureActions, FailureActionConfigurationType) and failureActions is not None:
-            raise ValueError('The parameter FailureActions must be of type FailureActionConfigurationType or NoneType, but it is of type {0}'.format( type(failureActions).__name__))
+            msg = 'The parameter FailureActions must be of type FailureActionConfigurationType or NoneType, but it is of type {0}'
+            raise ValueError(msg.format(type(failureActions).__name__))

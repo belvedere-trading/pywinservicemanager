@@ -106,15 +106,15 @@ class TestServiceConfigurations(unittest.TestCase):
 
         service = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=newServiceDefinition)
 
-        self.assertTrue(service._configs['ServiceType'].Win32Value() == self.mockwin32service.SERVICE_WIN32_OWN_PROCESS)
-        self.assertTrue(service._configs['LoadOrderGroup'].Win32Value() == u'')
-        self.assertTrue(service._configs['BinaryPathName'].Win32Value() == "C:\\Windows\\System32\\cmd.exe /c echo hello" )
-        self.assertTrue(service._configs['ServiceStartName'].Win32Value() == u'LocalSystem')
-        self.assertTrue(service._configs['ServiceName'].Win32Value() == "MyTestService")
-        self.assertTrue(service._configs['DisplayName'].Win32Value() == "MyTestService")
-        self.assertTrue(service._configs['StartType'].Win32Value() == self.mockwin32service.SERVICE_DEMAND_START)
-        self.assertTrue(service._configs['Dependencies'].Win32Value() == None)
-        self.assertTrue(service._configs['ErrorControl'].Win32Value() == self.mockwin32service.SERVICE_ERROR_NORMAL)
+        self.assertTrue(service.configurations['ServiceType'].Win32Value() == self.mockwin32service.SERVICE_WIN32_OWN_PROCESS)
+        self.assertTrue(service.configurations['LoadOrderGroup'].Win32Value() == u'')
+        self.assertTrue(service.configurations['BinaryPathName'].Win32Value() == "C:\\Windows\\System32\\cmd.exe /c echo hello" )
+        self.assertTrue(service.configurations['ServiceStartName'].Win32Value() == u'LocalSystem')
+        self.assertTrue(service.configurations['ServiceName'].Win32Value() == "MyTestService")
+        self.assertTrue(service.configurations['DisplayName'].Win32Value() == "MyTestService")
+        self.assertTrue(service.configurations['StartType'].Win32Value() == self.mockwin32service.SERVICE_DEMAND_START)
+        self.assertTrue(service.configurations['Dependencies'].Win32Value() == None)
+        self.assertTrue(service.configurations['ErrorControl'].Win32Value() == self.mockwin32service.SERVICE_ERROR_NORMAL)
 
     def TestEqualsIsTrue(self):
         configs = TestServiceConfigurations.GetNonExistentArgs()
@@ -125,32 +125,32 @@ class TestServiceConfigurations(unittest.TestCase):
     def TestEqualsIsFalse(self):
         configs = TestServiceConfigurations.GetNonExistentArgs()
         service = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)
-        for key, value in service._configs.iteritems():
+        for key, value in service.configurations.iteritems():
             if key == 'TagId':
                 continue
             service1 = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)
             if isinstance(value, int):
-                service1._configs[key] = service1._configs[key]+1
+                service1.configurations[key] = service1.configurations[key]+1
             if isinstance(value, list):
-                service1._configs[key] = None
+                service1.configurations[key] = None
             else:
-                service1._configs[key] = 'NewValue'
+                service1.configurations[key] = 'NewValue'
             equals = service == service1
             self.assertFalse(equals, key + ' is not compared')
 
     def TestNotEqualsIsTrue(self):
         configs = TestServiceConfigurations.GetNonExistentArgs()
         service = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)
-        for key, value in service._configs.iteritems():
+        for key, value in service.configurations.iteritems():
             if key == 'TagId':
                 continue
             service1 = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)
             if isinstance(value, int):
-                service1._configs[key] = service1._configs[key]+1
+                service1.configurations[key] = service1.configurations[key]+1
             if isinstance(value, list):
-                service1._configs[key] = None
+                service1.configurations[key] = None
             else:
-                service1._configs[key] = 'NewValue'
+                service1.configurations[key] = 'NewValue'
             equals = service == service1
             self.assertTrue(not equals, key + ' is not compared')
 

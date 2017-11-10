@@ -1,4 +1,4 @@
-import win32service
+import win32service # pylint: disable=import-error
 from pywinservicemanager.ServiceEntity import ServiceEntity
 from pywinservicemanager.ServiceStatusProcessEntity import ServiceStatusProcessEntity
 from pywinservicemanager.NewServiceDefinition import NewServiceDefinition
@@ -6,7 +6,8 @@ from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
 
 def CreateService(newServiceDefinition):
     if not isinstance(newServiceDefinition, NewServiceDefinition):
-        raise TypeError('newServiceDefinition parameter must be type of NewServiceDefinition, but it is of type {0}'.format(type(newServiceDefinition).__name__))
+        msg = 'newServiceDefinition parameter must be type of NewServiceDefinition, but it is of type {0}'
+        raise TypeError(msg.format(type(newServiceDefinition).__name__))
     service = ServiceEntity.GenerateNewServiceFromServiceDefinition(newServiceDefinition)
     return service
 

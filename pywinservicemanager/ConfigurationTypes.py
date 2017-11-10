@@ -1,5 +1,5 @@
-import win32service
 import abc
+import win32service # pylint: disable=import-error
 
 class ConfigurationBase(object):
     """ This class is the base class for all 'Configruations'. The basic idea of this
@@ -53,9 +53,9 @@ class ConfigurationBase(object):
             ConfigurationBase.__raiseMappingErrorException(self._mappings, self._className, value, isWin32Value=False)
 
     @classmethod
-    def _getPropertiesAsDict(self):
-        return dict((key, value) for (key, value) in self._DerivedType().__dict__.items()
-                    if not key.startswith('_') and not callable(value) and key !='Mappings')
+    def _getPropertiesAsDict(cls):
+        return dict((key, value) for (key, value) in cls._DerivedType().__dict__.items()
+                    if not key.startswith('_') and not callable(value) and key != 'Mappings')
 
     @abc.abstractmethod
     def StringValue(self):
@@ -91,24 +91,24 @@ class ConfigurationBase(object):
 
     @staticmethod
     def __raiseMappingErrorException(mappingDictionary, parameterName, valueRecieved, isWin32Value):
-        '''
-            Should be used internally to the class. This method is a helper function that raises an exception given an incorrect mapping value
+        '''Should be used internally to the class. This method is a helper function that raises an exception
+        given an incorrect mapping value
         '''
         if isWin32Value:
             validValues = ','.join([str(value) for value in mappingDictionary.values()])
         else:
             validValues = ','.join(mappingDictionary.keys() + ['None'])
 
-        errorMsg = 'The parameter {0} is not a valid value. Valid values are : {1}. Value received {2}'.format(parameterName, validValues, valueRecieved)
-        raise ValueError(errorMsg)
+        errorMsg = 'The parameter {0} is not a valid value. Valid values are : {1}. Value received {2}'
+        raise ValueError(errorMsg.format(parameterName, validValues, valueRecieved))
 
     @staticmethod
     def __validateTypes(value, derivedClassName, validTypes):
+        '''Should be used internally to the class. This method does type checking for the given configuration.
+        If the type of the value is passed is invalid, an excpetion will be raised.
         '''
-            Should be used internally to the class. This method does type checking for the given configuration. If the type of the value is passed is invalid,
-            an excpetion will be raised.
-        '''
-        if not validTypes or len(validTypes) == 0:
+        validTypeLength = len(validTypes)
+        if not validTypes or validTypeLength == 0:
             return True
 
         isValid = False
@@ -119,8 +119,8 @@ class ConfigurationBase(object):
         if not isValid:
             validTypesAsStrings = [validType.__name__ for validType in validTypes]
             validTypesString = ','.join(validTypesAsStrings)
-            errorMsg = '{0} is not a valid type. Valid Types are : {1}. Type received {2}'.format(derivedClassName, validTypesString, type(value))
-            raise ValueError(errorMsg)
+            errorMsg = '{0} is not a valid type. Valid Types are : {1}. Type received {2}'
+            raise ValueError(errorMsg.format(derivedClassName, validTypesString, type(value)))
         return True
 
 
@@ -158,8 +158,8 @@ class ConfigurationTypeFactory(object):
             return typeMappings[typeName](value, isWin32Value)
 
         validValues = ','.join(typeMappings.keys())
-        errorMsg = 'The parameter typeName is not a valid value. Value Passed: {0}. Valid values are : {1}'.format(value, validValues)
-        raise ValueError(errorMsg)
+        errorMsg = 'The parameter typeName is not a valid value. Value Passed: {0}. Valid values are : {1}'
+        raise ValueError(errorMsg.format(value, validValues))
 
 
 class FailureActionTypeFactory(object):
@@ -207,8 +207,6 @@ class BinaryPathNameType(ConfigurationBase):
         """Retrieve the data as it's win32 api Value"""
         return self.value
 
-ConfigurationBase.register(BinaryPathNameType)
-
 
 class CheckPointType(ConfigurationBase):
 
@@ -227,8 +225,6 @@ class CheckPointType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-
-ConfigurationBase.register(CheckPointType)
 
 
 class ControlsAcceptedType(ConfigurationBase):
@@ -266,8 +262,7 @@ class ControlsAcceptedType(ConfigurationBase):
 
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
-        return self.Mappings[self.value]
-ConfigurationBase.register(ControlsAcceptedType)
+        return self.value
 
 
 class CurrentStateType(ConfigurationBase):
@@ -295,8 +290,6 @@ class CurrentStateType(ConfigurationBase):
         """Retrieve the data as it's win32 api Value"""
         return self.Mappings[self.value]
 
-ConfigurationBase.register(CurrentStateType)
-
 
 class DelayedAutoStartInfoType(ConfigurationBase):
 
@@ -317,7 +310,6 @@ class DelayedAutoStartInfoType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(DelayedAutoStartInfoType)
 
 
 class DependenciesType(ConfigurationBase):
@@ -337,7 +329,6 @@ class DependenciesType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(DependenciesType)
 
 
 class DescriptionType(ConfigurationBase):
@@ -357,7 +348,6 @@ class DescriptionType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(DescriptionType)
 
 
 class DisplayNameType(ConfigurationBase):
@@ -377,7 +367,6 @@ class DisplayNameType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(DisplayNameType)
 
 
 class ErrorControlType(ConfigurationBase):
@@ -392,7 +381,7 @@ class ErrorControlType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         if value is None:
-            value='ERROR_NORMAL'
+            value = 'ERROR_NORMAL'
         validTypes = []
         super(ErrorControlType, self).__init__(self, value, validTypes, isWin32Value)
 
@@ -403,7 +392,6 @@ class ErrorControlType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.Mappings[self.value]
-ConfigurationBase.register(ErrorControlType)
 
 
 class FailureActionConfigurationCommandLineType(ConfigurationBase):
@@ -423,7 +411,6 @@ class FailureActionConfigurationCommandLineType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(FailureActionConfigurationCommandLineType)
 
 
 class FailureActionConfigurationRebootMessageType(ConfigurationBase):
@@ -443,7 +430,6 @@ class FailureActionConfigurationRebootMessageType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(FailureActionConfigurationRebootMessageType)
 
 
 class FailureActionConfigurationResetPeriodType(ConfigurationBase):
@@ -463,7 +449,6 @@ class FailureActionConfigurationResetPeriodType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(FailureActionConfigurationResetPeriodType)
 
 
 class FailureActionConfigurationType(ConfigurationBase):
@@ -471,26 +456,27 @@ class FailureActionConfigurationType(ConfigurationBase):
     @property
     def Mappings(self):
         return None
-
-    def __init__(self, failureActionsTypeList = None, resetPeriodType = None, rebootMessageType = None, commandLineType = None, isWin32Value=False):
+    #pylint: disable=R0913
+    def __init__(self, failureActionsTypeList=None, resetPeriodType=None,
+                 rebootMessageType=None, commandLineType=None, isWin32Value=False):
         self.__validateFailureActionsTypeListParameter(failureActionsTypeList)
         super(FailureActionConfigurationType, self).__init__(self, None, [], isWin32Value)
 
         if failureActionsTypeList is None:
             failureActionsTypeList = []
-        self.__failureActionsTypeList = failureActionsTypeList
+        self.failureActionsTypeList = failureActionsTypeList
 
         if not isinstance(resetPeriodType, FailureActionConfigurationResetPeriodType):
             resetPeriodType = FailureActionConfigurationResetPeriodType(resetPeriodType)
-        self.__resetPeriodType = resetPeriodType
+        self.resetPeriodType = resetPeriodType
 
         if not isinstance(rebootMessageType, FailureActionConfigurationRebootMessageType):
             rebootMessageType = FailureActionConfigurationRebootMessageType(rebootMessageType)
-        self.__rebootMessageType = rebootMessageType
+        self.rebootMessageType = rebootMessageType
 
         if not isinstance(commandLineType, FailureActionConfigurationCommandLineType):
             commandLineType = FailureActionConfigurationCommandLineType(commandLineType)
-        self.__commandLineType = commandLineType
+        self.commandLineType = commandLineType
 
     @staticmethod
     def GetInstanceFromDictionary(configruationAsDict):
@@ -521,48 +507,50 @@ class FailureActionConfigurationType(ConfigurationBase):
     def StringValue(self):
         """Retrieve the data as it's string Value"""
         actions = []
-        for action in self.__failureActionsTypeList:
+        for action in self.failureActionsTypeList:
             actions.append(action.StringValue())
 
-        return str({'ResetPeriod': self.__resetPeriodType.StringValue(),
-                'RebootMsg': self.__rebootMessageType.StringValue(),
-                'Command': self.__commandLineType.StringValue(),
-                'Actions': str(actions)})
+        return str({'ResetPeriod': self.resetPeriodType.StringValue(),
+                    'RebootMsg': self.rebootMessageType.StringValue(),
+                    'Command': self.commandLineType.StringValue(),
+                    'Actions': str(actions)})
 
 
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         failureActions = []
-        for failureAction in self.__failureActionsTypeList:
+        for failureAction in self.failureActionsTypeList:
             failureActions.append(failureAction.Win32Value())
 
-        return {'ResetPeriod': self.__resetPeriodType.Win32Value(),
-                    'RebootMsg': self.__rebootMessageType.Win32Value(),
-                    'Command': self.__commandLineType.Win32Value(),
-                    'Actions': failureActions }
+        return {'ResetPeriod': self.resetPeriodType.Win32Value(),
+                'RebootMsg': self.rebootMessageType.Win32Value(),
+                'Command': self.commandLineType.Win32Value(),
+                'Actions': failureActions}
 
     def __eq__(self, other):
         if not isinstance(other, self._DerivedType()):
             return False
-        return self.__resetPeriodType == other.__resetPeriodType and \
-               self.__rebootMessageType == other.__rebootMessageType and \
-               self.__commandLineType == other.__commandLineType and \
-               self.__failureActionsTypeList == other.__failureActionsTypeList
+        return self.resetPeriodType == other.resetPeriodType and \
+               self.rebootMessageType == other.rebootMessageType and \
+               self.commandLineType == other.commandLineType and \
+               self.failureActionsTypeList == other.failureActionsTypeList
 
     def __ne__(self, other):
         result = self.__eq__(other)
         return not result
 
-    def __validateFailureActionsTypeListParameter(self, failureActionsTypeList):
-         if failureActionsTypeList is None:
-             return
-
-         if not isinstance(failureActionsTypeList, list):
-              raise ValueError('failureActionsTypeList parameter must be of type list of FailureActionType, but the oject is not a list')
-         for element in failureActionsTypeList:
-              if not isinstance(element, FailureActionType):
-                  raise ValueError('failureActionsTypeList parameter must be of type list of FailureActionType, but not all elements are of Type FailureActionType')
-ConfigurationBase.register(FailureActionConfigurationType)
+    @staticmethod
+    def __validateFailureActionsTypeListParameter(failureActionsTypeList):
+        if failureActionsTypeList is None:
+            return
+        if not isinstance(failureActionsTypeList, list):
+            msg = 'failureActionsTypeList parameter must be of type list of FailureActionType, but the oject is not a list'
+            raise ValueError(msg)
+        for element in failureActionsTypeList:
+            if not isinstance(element, FailureActionType):
+                msg = 'failureActionsTypeList parameter must be of type list of FailureActionType, '
+                msg += 'but not all elements are of Type FailureActionType'
+                raise ValueError(msg)
 
 
 class FailureActionDelayType(ConfigurationBase):
@@ -584,7 +572,6 @@ class FailureActionDelayType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(FailureActionDelayType)
 
 
 class FailureActionExecutionType(ConfigurationBase):
@@ -609,7 +596,6 @@ class FailureActionExecutionType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.Mappings[self.value]
-ConfigurationBase.register(FailureActionExecutionType)
 
 
 class FailureActionType(ConfigurationBase):
@@ -619,28 +605,30 @@ class FailureActionType(ConfigurationBase):
         return None
 
     def __init__(self, failureActionExecutionType, failureActionDelayType, isWin32Value=False):
-        if not isinstance(failureActionExecutionType, FailureActionExecutionType) and not isinstance(failureActionDelayType, FailureActionDelayType):
-            msg = 'The argument "failureActionExecutionType" and "failureActionDelayType" are not of the types of their namesakes, and should be. failureActionExecutionType is of type {0} and failureActionDelayType is of type of {1}'
+        if not isinstance(failureActionExecutionType, FailureActionExecutionType) and \
+           not isinstance(failureActionDelayType, FailureActionDelayType):
+            msg = 'The argument "failureActionExecutionType" and "failureActionDelayType" are not of the types of their namesakes, '
+            msg += 'and should be. failureActionExecutionType is of type {0} and failureActionDelayType is of type of {1}'
             raise ValueError(msg.format(type(failureActionExecutionType).__name__, type(failureActionDelayType).__name__))
 
         super(FailureActionType, self).__init__(self, None, [], isWin32Value)
-        self.__failureActionExecutionType = failureActionExecutionType if failureActionExecutionType else FailureActionExecutionType(None)
-        self.__failureActionDelayType = failureActionDelayType if failureActionDelayType else FailureActionDelayType(None)
+        self.failureActionExecutionType = failureActionExecutionType if failureActionExecutionType else FailureActionExecutionType(None)
+        self.failureActionDelayType = failureActionDelayType if failureActionDelayType else FailureActionDelayType(None)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
-        return {'FailureActionType' : self.__failureActionExecutionType.StringValue(), 'Delay': self.__failureActionDelayType.StringValue() }
+        return {'FailureActionType' : self.failureActionExecutionType.StringValue(),
+                'Delay': self.failureActionDelayType.StringValue()}
 
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
-        return (self.__failureActionExecutionType.Win32Value(), self.__failureActionDelayType.Win32Value())
+        return (self.failureActionExecutionType.Win32Value(), self.failureActionDelayType.Win32Value())
 
     def __eq__(self, other):
         if not isinstance(other, FailureActionType):
             return False
-        return self.__failureActionExecutionType == other.__failureActionExecutionType and \
-               self.__failureActionDelayType == other.__failureActionDelayType
-ConfigurationBase.register(FailureActionType)
+        return self.failureActionExecutionType == other.failureActionExecutionType and \
+               self.failureActionDelayType == other.failureActionDelayType
 
 
 class FailureFlagType(ConfigurationBase):
@@ -662,7 +650,6 @@ class FailureFlagType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(FailureFlagType)
 
 
 class LoadOrderGroupType(ConfigurationBase):
@@ -687,10 +674,6 @@ class LoadOrderGroupType(ConfigurationBase):
         """Retrieve the data as it's win32 api Value"""
         return self.value
 
-        return self.value
-ConfigurationBase.register(LoadOrderGroupType)
-
-
 class PreShutdownInfoType(ConfigurationBase):
 
     @property
@@ -711,7 +694,6 @@ class PreShutdownInfoType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(PreShutdownInfoType)
 
 
 class ProcessIdType(ConfigurationBase):
@@ -731,7 +713,6 @@ class ProcessIdType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(ProcessIdType)
 
 
 class ServiceFlagsType(ConfigurationBase):
@@ -751,7 +732,6 @@ class ServiceFlagsType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(ServiceFlagsType)
 
 
 class ServiceNameType(ConfigurationBase):
@@ -771,7 +751,6 @@ class ServiceNameType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(ServiceNameType)
 
 
 class ServiceSIDInfoType(ConfigurationBase):
@@ -795,7 +774,6 @@ class ServiceSIDInfoType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.Mappings[self.value]
-ConfigurationBase.register(ServiceSIDInfoType)
 
 
 class ServiceStartNameType(ConfigurationBase):
@@ -809,7 +787,7 @@ class ServiceStartNameType(ConfigurationBase):
         super(ServiceStartNameType, self).__init__(self, value, validTypes, isWin32Value)
 
         if value is None:
-           self.value = u'LocalSystem'
+            self.value = u'LocalSystem'
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -818,7 +796,6 @@ class ServiceStartNameType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(ServiceStartNameType)
 
 
 class ServiceStartType(ConfigurationBase):
@@ -844,16 +821,15 @@ class ServiceStartType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.Mappings[self.value]
-ConfigurationBase.register(ServiceStartType)
 
 
 class ServiceType(ConfigurationBase):
-    WIN32_SHARE_PROCESS =  win32service.SERVICE_WIN32_SHARE_PROCESS
-    WIN32_OWN_PROCESS =  win32service.SERVICE_WIN32_OWN_PROCESS
-    KERNEL_DRIVER =  win32service.SERVICE_KERNEL_DRIVER
-    FILE_SYSTEM_DRIVER =  win32service.SERVICE_FILE_SYSTEM_DRIVER
-    INTERACTIVE_SHARE_PROCESS =  win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_SHARE_PROCESS
-    INTERACTIVE_OWN_PROCESS =  win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_OWN_PROCESS
+    WIN32_SHARE_PROCESS = win32service.SERVICE_WIN32_SHARE_PROCESS
+    WIN32_OWN_PROCESS = win32service.SERVICE_WIN32_OWN_PROCESS
+    KERNEL_DRIVER = win32service.SERVICE_KERNEL_DRIVER
+    FILE_SYSTEM_DRIVER = win32service.SERVICE_FILE_SYSTEM_DRIVER
+    INTERACTIVE_SHARE_PROCESS = win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_SHARE_PROCESS
+    INTERACTIVE_OWN_PROCESS = win32service.SERVICE_INTERACTIVE_PROCESS | win32service.SERVICE_WIN32_OWN_PROCESS
 
     @property
     def Mappings(self):
@@ -871,7 +847,6 @@ class ServiceType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.Mappings[self.value]
-ConfigurationBase.register(ServiceType)
 
 
 class TagIdType(ConfigurationBase):
@@ -890,7 +865,6 @@ class TagIdType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(TagIdType)
 
 
 class WaitHintType(ConfigurationBase):
@@ -909,7 +883,6 @@ class WaitHintType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(WaitHintType)
 
 
 class Win32ExitCodeType(ConfigurationBase):
@@ -928,4 +901,3 @@ class Win32ExitCodeType(ConfigurationBase):
     def Win32Value(self):
         """Retrieve the data as it's win32 api Value"""
         return self.value
-ConfigurationBase.register(Win32ExitCodeType)

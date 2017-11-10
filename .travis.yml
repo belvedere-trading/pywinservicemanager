@@ -1,0 +1,19 @@
+language: python
+python:
+- '2.7'
+before_install:
+ - chmod +x build.sh
+install:
+- pip install .
+- pip install -r test_required_packages.req
+- pip install -r build_required_packages.req
+script:
+- "./build.sh"
+deploy:
+  - provider: pypi
+    user: "belvedere-trading"
+    password:
+      secure: xOetc0iG94zee4M3eOe0TaWBRiRByX2U5iFClEFPktOdtvDzeGbGcF6hgghsuXXVTmcD1AJC350tDluYrufz+HgYsKkUmZ1QJiwONg8SUbY6ZdkPDT+TEvnLHFaQvsQ33Uq5T2ipY4fMadOidvjsPRuOlP4LExTAVdDmgrB77pObTR0Rk7rvtlx3mhVAQR+Q3jcKgK8KKh+glCmDutmBVTM2gFz/qAAC92v21I37zRMniQ4dk7DGmmua/83/OqiTzBS114wuJAbUSrjxFTE+jF+cnr9KyPXNovi5ctVa5K3PVF58wFAvq41ZCE9mhTzEIUT/giwiwFn8vWSO/eAjolKYmef01f3cpCpUpJNOoKc2I5I6ogEqdc8opf8hVc0NodDa1bov9JuqscGekBCgy32K6LutEu6m4Ms+ZrhpDOgBnVCs17zqWZYjAcFd467R5Uo2Uhtn/QDBKZ/+tsGVdI8EM4fZhjisftIGNxYxnFaKS/K163ONExyGHVp3oyu+8XYQ5iyuqNndr8KLsS5XJeKARDJduNn4HbCeiD8WkjcotrEgWk2FI0XH+erPP2HUCnC7FDXf0vfg7R04dmzoAXNaHnYgsBejakehblgOjoH9rFqLiU4bPwexxV5+17tn0c+WVPi9Fa/fOyMcaAA/WS7VbLTUV+P8YfAjNazrVuE=
+    distributions: "sdist"
+    on:
+      tags: true
