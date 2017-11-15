@@ -1,7 +1,4 @@
-import win32service
 from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
-
-ConfigurationTypeFactory
 
 class ServiceStatusEntity(object):
     __indexesOfServiceStatusTypes = {'ServiceType': 0,

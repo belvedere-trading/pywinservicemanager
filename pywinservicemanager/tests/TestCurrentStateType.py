@@ -34,7 +34,7 @@ class TestCurrentStateType(unittest.TestCase):
         value = 'PAUSE_PENDING'
         t = CurrentStateType(value)
         self.assertEquals(t.StringValue(), value)
-        self.assertEquals(t.Win32Value(), self.mockwin32service.SERVICE_PAUSE_PENDING)
+        self.assertEquals(t.Win32Value(), t.PAUSE_PENDING)
 
     def TestInitWithCorrectWin32Parameters(self):
         value = self.mockwin32service.SERVICE_RUNNING

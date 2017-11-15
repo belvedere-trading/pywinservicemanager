@@ -1,13 +1,16 @@
 from setuptools import setup, find_packages
 import platform
 
-is_windows = any(platform.win32_ver())
-required_packages = []
-if is_windows:
-      required_packages = ['pypiwin32>=219']
+if __name__ == '__main__':
+    is_windows = any(platform.win32_ver())
+    required_packages = []
+    if is_windows:
+        required_packages = open('required_packages.req').read().splitlines()
+    testPackages = open('test_required_packages.req').read().splitlines()
+
 
 setup(name='pywinservicemanager',
-      version='1.0.3',
+      version='1.0.7',
       author='Team Belvedere, LLC',
       author_email='opensource@belvederetrading.com',
       url='https://github.com/belvedere-trading/pywinservicemanager',
@@ -16,4 +19,4 @@ setup(name='pywinservicemanager',
       packages=find_packages(),
       long_description=open('README.rst').read(),
       install_requires=required_packages,
-      tests_require=['mock', 'nose'])
+      tests_require=testPackages)

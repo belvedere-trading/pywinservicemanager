@@ -1,10 +1,10 @@
-import win32service
 import time
+import win32service # pylint: disable=import-error
 from pywinservicemanager.ServiceConfigurations2 import ServiceConfigurations2
 from pywinservicemanager.ServiceConfigurations import ServiceConfigurations
 from pywinservicemanager.ServiceStatusProcessEntity import ServiceStatusProcessEntity
 from pywinservicemanager.ServiceStatusEntity import ServiceStatusEntity
-from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
+from pywinservicemanager.ConfigurationTypes import CurrentStateType
 
 class ServiceEntity(object):
 
@@ -12,13 +12,14 @@ class ServiceEntity(object):
 
     def __init__(self, serviceConfigManagerHandle, serviceName, serviceConfigurations, serviceConfigurations2):
         self.__serviceConfigManagerHandle = serviceConfigManagerHandle
-        self.__serviceConfigurations = serviceConfigurations
-        self.__serviceConfigurations2 = serviceConfigurations2
+        self.serviceConfigurations = serviceConfigurations
+        self.serviceConfigurations2 = serviceConfigurations2
         self.__serviceName = serviceName
 
     def __enter__(self):
         return self
 
+    #pylint: disable=W0622
     def __exit__(self, type, value, traceback):
         if self.__serviceConfigManagerHandle is not None:
             win32service.CloseServiceHandle(self.__serviceConfigManagerHandle)
@@ -54,14 +55,14 @@ class ServiceEntity(object):
     @property
     def Configurations(self):
         configs = {}
-        configs.update(self.__serviceConfigurations.Configurations)
-        configs.update(self.__serviceConfigurations2.Configurations)
+        configs.update(self.serviceConfigurations.Configurations)
+        configs.update(self.serviceConfigurations2.Configurations)
         return configs
 
     def Save(self, serviceStartNamePassword=None):
         serviceExists = ServiceEntity.ServiceExists(self.ServiceName)
-        self.__serviceConfigurations.Save(serviceExists, self.__serviceConfigManagerHandle, serviceStartNamePassword)
-        self.__serviceConfigurations2.Save(self.__serviceConfigManagerHandle)
+        self.serviceConfigurations.Save(serviceExists, self.__serviceConfigManagerHandle, serviceStartNamePassword)
+        self.serviceConfigurations2.Save(self.__serviceConfigManagerHandle)
 
     def Delete(self):
         serviceHandle = None
@@ -74,7 +75,7 @@ class ServiceEntity(object):
 
     def Start(self):
         status = self.GetServiceStatus()
-        if status['CurrentState'].StringValue() == 'RUNNING':
+        if status['CurrentState'].Win32Value() == CurrentStateType.RUNNING:
             return status
 
         serviceHandle = None
@@ -83,7 +84,7 @@ class ServiceEntity(object):
             win32service.StartService(serviceHandle, {})
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'RUNNING':
+            while status['CurrentState'].Win32Value() != CurrentStateType.RUNNING:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)
@@ -94,7 +95,7 @@ class ServiceEntity(object):
 
     def Stop(self):
         status = self.GetServiceStatus()
-        if status['CurrentState'].StringValue() == 'STOPPED':
+        if status['CurrentState'].Win32Value() == CurrentStateType.STOPPED:
             return status
 
         serviceHandle = None
@@ -104,7 +105,7 @@ class ServiceEntity(object):
             win32service.ControlService(serviceHandle, win32service.SERVICE_CONTROL_STOP)
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'STOPPED':
+            while status['CurrentState'].Win32Value() != CurrentStateType.STOPPED:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)
@@ -120,8 +121,8 @@ class ServiceEntity(object):
 
     def Pause(self):
         status = self.GetServiceStatus()
-        if status['CurrentState'].StringValue() == 'PAUSED':
-                return status
+        if status['CurrentState'].Win32Value() == CurrentStateType.PAUSED:
+            return status
 
         serviceHandle = None
         try:
@@ -129,7 +130,7 @@ class ServiceEntity(object):
             win32service.ControlService(serviceHandle, win32service.SERVICE_CONTROL_PAUSE)
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'PAUSED':
+            while status['CurrentState'].Win32Value() != CurrentStateType.PAUSED:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)
@@ -146,7 +147,7 @@ class ServiceEntity(object):
             win32service.ControlService(serviceHandle, win32service.SERVICE_CONTROL_CONTINUE)
             start = time.time()
             status = self.GetServiceStatus()
-            while status['CurrentState'].StringValue() != 'RUNNING':
+            while status['CurrentState'].Win32Value() != CurrentStateType.RUNNING:
                 if time.time() - start > self._TIMEOUT:
                     raise TimeoutException()
                 time.sleep(.5)
@@ -180,10 +181,10 @@ class ServiceEntity(object):
                 win32service.CloseServiceHandle(serviceHandle)
 
     def UpdateConfiguration(self, configurationName, value):
-        if configurationName in self.__serviceConfigurations.Configurations:
-            self.__serviceConfigurations.UpdateConfiguration(configurationName, value)
-        elif configurationName in self.__serviceConfigurations2.Configurations:
-            self.__serviceConfigurations2.UpdateConfiguration(configurationName, value)
+        if configurationName in self.serviceConfigurations.Configurations:
+            self.serviceConfigurations.UpdateConfiguration(configurationName, value)
+        elif configurationName in self.serviceConfigurations2.Configurations:
+            self.serviceConfigurations2.UpdateConfiguration(configurationName, value)
         else:
             raise ValueError('The Configuration Name {0} does not exist'.format(configurationName))
 
@@ -208,8 +209,10 @@ class ServiceEntity(object):
                 serviceConfigManagerHandle = win32service.OpenSCManager('', None, win32service.SC_MANAGER_ALL_ACCESS)
                 serviceHandle = ServiceEntity.__getServiceHandle(serviceName, serviceConfigManagerHandle)
             return True
-        except Exception, e:
+        except NoServiceExistsException:
             return False
+        except Exception:
+            raise
         finally:
             if serviceHandle:
                 win32service.CloseServiceHandle(serviceHandle)
@@ -223,24 +226,32 @@ class ServiceEntity(object):
             try:
                 serviceHandle = win32service.OpenService(serviceConfigManagerHandle, serviceName, access_right)
                 return serviceHandle
-            except Exception, e:
+            except Exception:
                 # try again with different access right
                 pass
 
-        raise Exception('Service Name {0} does not exists'.format(self.ServiceName))
+        raise NoServiceExistsException(serviceName)
 
 
     def __eq__(self, other):
         if isinstance(other, ServiceEntity):
-            configsAreEqual = self.__serviceConfigurations == other.__serviceConfigurations
-            configs2AreEqual = self.__serviceConfigurations2 == other.__serviceConfigurations2
+            configsAreEqual = self.serviceConfigurations == other.serviceConfigurations
+            configs2AreEqual = self.serviceConfigurations2 == other.serviceConfigurations2
             return configsAreEqual and configs2AreEqual
 
     def __ne__(self, other):
         result = self.__eq__(other)
         return not result
 
+class NoServiceExistsException(Exception):
+    def __init__(self, serviceName):
+        message = "The service {} does not exists".format(serviceName)
+        super(NoServiceExistsException, self).__init__(message)
+
 class TimeoutException(Exception):
-    def __init__(self, message='The service did not respond to the start or control request in a timely fashion.', errors = None):
+    def __init__(self, message=None, errors=None):
+        self.message = 'The service did not respond to the start or control request in a timely fashion.'
+        if message:
+            self.message = message
         super(TimeoutException, self).__init__(message)
         self.errors = errors

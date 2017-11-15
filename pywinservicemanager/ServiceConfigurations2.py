@@ -1,6 +1,4 @@
-import win32service
-from pywinservicemanager.ConfigurationTypes import FailureActionConfigurationType
-from pywinservicemanager.ConfigurationTypes import ServiceSIDInfoType
+import win32service # pylint: disable=import-error
 from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
 
 class ServiceConfigurations2(object):
@@ -14,11 +12,11 @@ class ServiceConfigurations2(object):
 
     def __init__(self, serviceName, configurations):
         self.ServiceName = serviceName
-        self._configs = configurations
+        self.configurations = configurations
 
     @property
     def Configurations(self):
-        return dict((key, value.StringValue()) for key, value in self._configs.iteritems())
+        return dict((key, value.StringValue()) for key, value in self.configurations.iteritems())
 
     @staticmethod
     def GenerateFromOperatingSystem(serviceConfigManagerHandle, serviceName):
@@ -35,16 +33,17 @@ class ServiceConfigurations2(object):
         serviceConfig2Handle = None
         configSettings = {}
         try:
-            serviceConfig2Handle = win32service.OpenService(serviceConfigManagerHandle, serviceName.StringValue(), win32service.SERVICE_QUERY_CONFIG)
-            for key in ServiceConfigurations2.Mappings.keys():
+            serviceConfig2Handle = win32service.OpenService(serviceConfigManagerHandle,
+                                                            serviceName.StringValue(),
+                                                            win32service.SERVICE_QUERY_CONFIG)
+            for key, _ in ServiceConfigurations2.Mappings.iteritems():
                 configSetting = None
                 config2Enum = ServiceConfigurations2.Mappings[key]
                 try:
                     configSetting = win32service.QueryServiceConfig2(serviceConfig2Handle, config2Enum)
                 #There are some configs that are only valid on certain windows versions
-                except Exception as e:
+                except Exception:
                     configSetting = None
-                    pass
 
                 configSettingType = ConfigurationTypeFactory.CreateConfigurationType(key, configSetting, True)
                 configSettings.update({key: configSettingType})
@@ -56,10 +55,9 @@ class ServiceConfigurations2(object):
 
     @staticmethod
     def __GetConfigurations2FromNonExistingService(newServiceDefinition):
-        serviceConfig2Handle = None
         configSettings = {}
         newServiceDefinitioConfigs = vars(newServiceDefinition)
-        for configKey in ServiceConfigurations2.Mappings.keys():
+        for configKey, _ in ServiceConfigurations2.Mappings.iteritems():
             configSettings[configKey] = newServiceDefinitioConfigs[configKey]
 
         return configSettings
@@ -69,7 +67,7 @@ class ServiceConfigurations2(object):
         if value is None:
             return
         try:
-                win32service.ChangeServiceConfig2(serviceHandle, configurationName, value.Win32Value())
+            win32service.ChangeServiceConfig2(serviceHandle, configurationName, value.Win32Value())
         except NotImplementedError:
             # ChangeServiceConfig2 and/or config type not implemented on this version of NT or win32service
             pass
@@ -78,11 +76,15 @@ class ServiceConfigurations2(object):
         serviceConfig2Handle = None
         currentConfigs = ServiceConfigurations2.__GetConfigurations2FromExistingService(serviceConfigManagerHandle, self.ServiceName)
         try:
-            serviceConfig2Handle = win32service.OpenService(serviceConfigManagerHandle, self.ServiceName.StringValue(), win32service.SERVICE_CHANGE_CONFIG | win32service.SERVICE_START)
+            serviceConfig2Handle = win32service.OpenService(serviceConfigManagerHandle,
+                                                            self.ServiceName.StringValue(),
+                                                            win32service.SERVICE_CHANGE_CONFIG | win32service.SERVICE_START)
 
             for key, value in ServiceConfigurations2.Mappings.iteritems():
-                if currentConfigs[key] != self._configs[key] and self._configs[key] != None and self._configs[key].StringValue() != None:
-                    ServiceConfigurations2.__SetConfigrations(serviceConfig2Handle, value, self._configs[key])
+                if currentConfigs[key] != self.configurations[key] and \
+                   self.configurations[key] != None and \
+                   self.configurations[key].StringValue() != None:
+                    ServiceConfigurations2.__SetConfigrations(serviceConfig2Handle, value, self.configurations[key])
         except:
             raise
         finally:
@@ -90,16 +92,16 @@ class ServiceConfigurations2(object):
 
     def UpdateConfiguration(self, configurationName, value):
         if configurationName == 'FailureActions':
-                self._configs[configurationName] = value
-                return
+            self.configurations[configurationName] = value
+            return
 
-        self._configs[configurationName] = ConfigurationTypeFactory.CreateConfigurationType(configurationName, value)
+        self.configurations[configurationName] = ConfigurationTypeFactory.CreateConfigurationType(configurationName, value)
 
     def __eq__(self, other):
         if not isinstance(other, ServiceConfigurations2):
             return False
-        for configKey in self._configs.keys():
-            if self._configs[configKey] != other._configs[configKey]:
+        for configKey in self.configurations.keys():
+            if self.configurations[configKey] != other.configurations[configKey]:
                 return False
         return True
 

@@ -1,6 +1,5 @@
-import win32service
+import win32service # pylint: disable=import-error
 from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
-from pywinservicemanager.NewServiceDefinition import NewServiceDefinition
 
 class ServiceConfigurations(object):
     # these indexes are defined by the win32 interface... I am definately not a fan of this type of design
@@ -15,11 +14,11 @@ class ServiceConfigurations(object):
                               'DisplayName': 8}
 
     def __init__(self, configurations):
-      self._configs = configurations
+        self.configurations = configurations
 
     @property
     def Configurations(self):
-        return dict((key, value.StringValue()) for key, value in self._configs.iteritems())
+        return dict((key, value.StringValue()) for key, value in self.configurations.iteritems())
 
     @staticmethod
     def GenerateFromOperatingSystem(serviceConfigManagerHandle, serviceName):
@@ -34,9 +33,11 @@ class ServiceConfigurations(object):
     @staticmethod
     def __CreateFromExistingService(serviceConfigManagerHandle, serviceName):
         serviceHandle = None
-        returnConfigs= {}
+        returnConfigs = {}
         try:
-            serviceHandle = win32service.OpenService(serviceConfigManagerHandle, serviceName.StringValue(), win32service.SERVICE_QUERY_CONFIG)
+            serviceHandle = win32service.OpenService(serviceConfigManagerHandle,
+                                                     serviceName.StringValue(),
+                                                     win32service.SERVICE_QUERY_CONFIG)
             savedConfigs = win32service.QueryServiceConfig(serviceHandle)
             returnConfigs = {'ServiceName': serviceName}
 
@@ -52,7 +53,7 @@ class ServiceConfigurations(object):
         configs = {'ServiceName': newServiceDefinition.ServiceName}
         newServiceDefinitionAsDict = vars(newServiceDefinition)
 
-        for key in ServiceConfigurations.indexesOfServiceConfig.keys():
+        for key, _ in ServiceConfigurations.indexesOfServiceConfig.iteritems():
             value = newServiceDefinitionAsDict.get(key, None)
             # TagId is a value that is assigned by the OS, thus we just create a config type with the default
             if key == 'TagId':
@@ -69,23 +70,23 @@ class ServiceConfigurations(object):
             self._SaveNewService(serviceConfigManagerHandle, serviceStartNamePassword)
 
     def UpdateConfiguration(self, configurationName, value):
-        self._configs[configurationName] = ConfigurationTypeFactory.CreateConfigurationType(configurationName, value)
+        self.configurations[configurationName] = ConfigurationTypeFactory.CreateConfigurationType(configurationName, value)
 
     def _SaveNewService(self, serviceConfigManagerHandle, serviceStartNamePassword=None):
         serviceHandle = None
         try:
             serviceHandle = win32service.CreateService(serviceConfigManagerHandle,
-                                                       self._configs['ServiceName'].Win32Value(),
-                                                       self._configs['DisplayName'].Win32Value(),
+                                                       self.configurations['ServiceName'].Win32Value(),
+                                                       self.configurations['DisplayName'].Win32Value(),
                                                        win32service.SERVICE_ALL_ACCESS, # desired access
-                                                       self._configs['ServiceType'].Win32Value(),
-                                                       self._configs['StartType'].Win32Value(),
-                                                       self._configs['ErrorControl'].Win32Value(),
-                                                       self._configs['BinaryPathName'].Win32Value(),
-                                                       self._configs['LoadOrderGroup'].Win32Value(),
+                                                       self.configurations['ServiceType'].Win32Value(),
+                                                       self.configurations['StartType'].Win32Value(),
+                                                       self.configurations['ErrorControl'].Win32Value(),
+                                                       self.configurations['BinaryPathName'].Win32Value(),
+                                                       self.configurations['LoadOrderGroup'].Win32Value(),
                                                        0,
-                                                       self._configs['Dependencies'].Win32Value(),
-                                                       self._configs['ServiceStartName'].Win32Value(),
+                                                       self.configurations['Dependencies'].Win32Value(),
+                                                       self.configurations['ServiceStartName'].Win32Value(),
                                                        serviceStartNamePassword)
         finally:
             if serviceHandle is not None:
@@ -94,18 +95,20 @@ class ServiceConfigurations(object):
     def _SaveExistingService(self, serviceConfigManagerHandle, serviceStartNamePassword=None):
         serviceHandle = None
         try:
-            serviceHandle = win32service.OpenService(serviceConfigManagerHandle, self._configs['ServiceName'].StringValue(),  win32service.SERVICE_CHANGE_CONFIG | win32service.SERVICE_START)
+            serviceHandle = win32service.OpenService(serviceConfigManagerHandle,
+                                                     self.configurations['ServiceName'].StringValue(),
+                                                     win32service.SERVICE_CHANGE_CONFIG | win32service.SERVICE_START)
             win32service.ChangeServiceConfig(serviceHandle,
-                                             self._configs['ServiceType'].Win32Value(),
-                                             self._configs['StartType'].Win32Value(),
-                                             self._configs['ErrorControl'].Win32Value(),
-                                             self._configs['BinaryPathName'].Win32Value(),
-                                             self._configs['LoadOrderGroup'].Win32Value(),
+                                             self.configurations['ServiceType'].Win32Value(),
+                                             self.configurations['StartType'].Win32Value(),
+                                             self.configurations['ErrorControl'].Win32Value(),
+                                             self.configurations['BinaryPathName'].Win32Value(),
+                                             self.configurations['LoadOrderGroup'].Win32Value(),
                                              0,
-                                             self._configs['Dependencies'].Win32Value(),
-                                             self._configs['ServiceStartName'].Win32Value(),
+                                             self.configurations['Dependencies'].Win32Value(),
+                                             self.configurations['ServiceStartName'].Win32Value(),
                                              serviceStartNamePassword,
-                                             self._configs['DisplayName'].Win32Value())
+                                             self.configurations['DisplayName'].Win32Value())
         finally:
             if serviceHandle:
                 win32service.CloseServiceHandle(serviceHandle)
@@ -114,14 +117,13 @@ class ServiceConfigurations(object):
         if not isinstance(other, ServiceConfigurations):
             return False
 
-        for key in self._configs.keys():
+        for key in self.configurations.keys():
             # TagId is not something that we can assign, so we do not take it into account
             # when checking equality
             if key == 'TagId':
-                    continue
-            if  self._configs[key] != other._configs[key]:
+                continue
+            if  self.configurations[key] != other.configurations[key]:
                 return False
-
         return True
 
     def __ne__(self, other):
