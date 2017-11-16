@@ -2,6 +2,7 @@ language: python
 python:
 - '2.7'
 install:
+- git describe --abbrev=0 > version.txt
 - pip install .
 - pip install -r test_required_packages.req
 - pip install -r build_required_packages.req
@@ -15,4 +16,5 @@ deploy:
     distributions: sdist
     on:
       tags: true
-  
+after_deploy:
+-  git clean -fq
