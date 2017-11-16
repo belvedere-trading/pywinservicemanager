@@ -1,5 +1,21 @@
 from setuptools import setup, find_packages
+import subprocess
 import platform
+import sys
+import re
+
+tag_regex = re.compile(r'v\d\.\d\.\d')
+def get_tagged_version():
+    process = subprocess.Popen(['git', 'describe', '--abbrev=0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    if process.returncode:
+        print 'Failed to get tagged version: {}'.format(err)
+        sys.exit(process.returncode)
+    out = out.strip()
+    if not re.match(tag_regex, out):
+        print 'Found invalid tag: {}'.format(out)
+        sys.exit(-1)
+    return out[1:]
 
 if __name__ == '__main__':
     is_windows = any(platform.win32_ver())
@@ -10,7 +26,7 @@ if __name__ == '__main__':
 
 
 setup(name='pywinservicemanager',
-      version='1.0.7',
+      version=get_tagged_version(),
       author='Team Belvedere, LLC',
       author_email='opensource@belvederetrading.com',
       url='https://github.com/belvedere-trading/pywinservicemanager',
