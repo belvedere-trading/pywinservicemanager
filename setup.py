@@ -4,18 +4,16 @@ import platform
 import sys
 import re
 
-tag_regex = re.compile(r'v\d\.\d\.\d')
-def get_tagged_version():
-    process = subprocess.Popen(['git', 'describe', '--abbrev=0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = process.communicate()
-    if process.returncode:
-        print 'Failed to get tagged version: {}'.format(err)
-        sys.exit(process.returncode)
-    out = out.strip()
-    if not re.match(tag_regex, out):
-        print 'Found invalid tag: {}'.format(out)
+tag_regex = re.compile(r'^v\d+\.\d+\.\d+$')
+def get_version():
+    version = ''
+    with open('version.txt') as file:
+        version = file.read()
+    version = version.strip()
+    if not re.match(tag_regex, version):
+        print 'Found invalid tag: {}'.format(version)
         sys.exit(-1)
-    return out[1:]
+    return version
 
 if __name__ == '__main__':
     is_windows = any(platform.win32_ver())
@@ -26,7 +24,7 @@ if __name__ == '__main__':
 
 
 setup(name='pywinservicemanager',
-      version=get_tagged_version(),
+      version=get_version(),
       author='Team Belvedere, LLC',
       author_email='opensource@belvederetrading.com',
       url='https://github.com/belvedere-trading/pywinservicemanager',
