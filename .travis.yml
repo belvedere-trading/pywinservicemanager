@@ -1,8 +1,6 @@
 language: python
 python:
 - '2.7'
-before_install:
- - chmod +x build.sh
 install:
 - pip install .
 - pip install -r test_required_packages.req
