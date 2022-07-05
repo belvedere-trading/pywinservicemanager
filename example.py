@@ -1,3 +1,4 @@
+from __future__ import print_function
 from pywinservicemanager.WindowsServiceConfigurationManager import QueryAllServicesStatus, CreateService, GetService, GetServiceStatus, ServiceExists
 from pywinservicemanager.NewServiceDefinition import NewServiceDefinition
 import pywinservicemanager.ConfigurationTypes as ConfigurationTypes
@@ -52,63 +53,63 @@ if __name__ == '__main__':
     # GetAllServices
     allService = QueryAllServicesStatus(True)
     if len(allService) > 0:
-        print '\nFirst Service from "Query All Services"'
-        print allService[0]
+        print('\nFirst Service from "Query All Services"')
+        print(allService[0])
 
     #Create a Service
     with CreateService(newServiceDefinition) as service1:
         service1.Save(password)
-        print '\n\nNew Service Configruations:'
+        print('\n\nNew Service Configruations:')
         pprint.pprint(service1.Configurations)
 
         #Get an Existing Service
         with GetService(serviceName) as service2:
 
-            print '\n\nGetting Existing Service Configurations:'
+            print('\n\nGetting Existing Service Configurations:')
             pprint.pprint(service2.Configurations)
 
-            print ''
-            print '\n\nGetting Existing Service Status:'
+            print('')
+            print('\n\nGetting Existing Service Status:')
             status = service2.GetServiceStatus()
             pprint.pprint(status)
 
-            print '\n\nThese 2 services sould be that same'
+            print('\n\nThese 2 services sould be that same')
             pprint.pprint(service1 == service2)
 
             status  = service2.GetServiceStatus()
             status = service2.Start()
-            print '\n\nGetting status after Start'
+            print('\n\nGetting status after Start')
             pprint.pprint(status)
 
-            print ''
+            print('')
             status = service2.Stop()
-            print '\n\nGetting status after Stop'
+            print('\n\nGetting status after Stop')
             pprint.pprint(status)
 
             #Pause Service if that command is accepted by the service
             status = service2.GetServiceStatus()
             if 'ACCEPT_PAUSE_CONTINUE' in status['ControlsAccepted'].StringValue():
                 status = service2.Pause()
-                print '\n\nGetting status after Pause'
+                print('\n\nGetting status after Pause')
                 pprint.pprint(status)
 
             #Continue Service if that command is accepted by the service
             status = service2.GetServiceStatus()
             if 'ACCEPT_PAUSE_CONTINUE' in status['ControlsAccepted'].StringValue():
                 status = service2.Continue()
-                print '\n\nGetting status after Continue'
+                print('\n\nGetting status after Continue')
                 pprint.pprint(status)
 
             # Update a configuration of a Service
             service2.UpdateConfiguration('StartType', 'AUTO_START')
             service2.Save()
-            print '\n\nGetting Configurations after Updating StartType to AUTO_START'
+            print('\n\nGetting Configurations after Updating StartType to AUTO_START')
             pprint.pprint(service2.Configurations)
 
             # Update a configuration of a Service
             service2.UpdateConfiguration('Description', 'UpdatingTest Description')
             service2.Save()
-            print '\n\nGetting Configurations after Updating Description to "UpdatingTest Description"'
+            print('\n\nGetting Configurations after Updating Description to "UpdatingTest Description"')
             pprint.pprint(service2.Configurations)
 
             #Service2 now has 2 different configurations
@@ -118,8 +119,8 @@ if __name__ == '__main__':
             #the service is stopped
             status = service2.Stop()
             service2.Delete()
-            print '\n\nDeleted Service'
+            print('\n\nDeleted Service')
 
             #Check if Service Exists
-            print '\n\nService Exists'
-            print service2.Exists()
+            print('\n\nService Exists')
+            print(service2.Exists())

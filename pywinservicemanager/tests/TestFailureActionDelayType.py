@@ -1,4 +1,6 @@
 from mock import MagicMock, patch
+from nose_parameterized import parameterized
+import six
 import unittest
 
 class TestFailureActionDelayType(unittest.TestCase):
@@ -22,27 +24,24 @@ class TestFailureActionDelayType(unittest.TestCase):
     def TestInitWithParametersOfNotValidValue(self):
         self.assertRaises(ValueError, FailureActionDelayType, 'asdf')
 
-    def TestInitWithLongParameters(self):
-        value = long(1)
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestInitWithIntTypeParameters(self, int_type):
+        value = int_type(1)
         t = FailureActionDelayType(value)
         self.assertEquals(t.StringValue(), value)
         self.assertEquals(t.Win32Value(), value)
 
-    def TestInitWithLongParameters(self):
-        value = 1
-        t = FailureActionDelayType(value)
-        self.assertEquals(t.StringValue(), value)
-        self.assertEquals(t.Win32Value(), value)
-
-    def TestEquals(self):
-        value = long(1)
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestEquals(self, int_type):
+        value = int_type(1)
         t = FailureActionDelayType(value)
         t2 = FailureActionDelayType(value)
         self.assertEquals(t, t2)
 
-    def TestNotEquals(self):
-        value1 = long(1)
-        value2 = long(2)
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEquals(self, int_type):
+        value1 = int_type(1)
+        value2 = int_type(2)
         t = FailureActionDelayType(value1)
         t2 = FailureActionDelayType(value2)
         self.assertNotEquals(t, t2)

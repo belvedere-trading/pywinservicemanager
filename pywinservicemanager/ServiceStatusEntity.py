@@ -1,3 +1,4 @@
+import six
 from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
 
 class ServiceStatusEntity(object):
@@ -12,7 +13,7 @@ class ServiceStatusEntity(object):
     def __init__(self, statusValues):
         self.Status = {}
 
-        for statusType, index in self.__indexesOfServiceStatusTypes.iteritems():
+        for statusType, index in six.iteritems(self.__indexesOfServiceStatusTypes):
             if statusType not in statusValues:
                 raise ValueError('"{0}" is not a field in the dictionary parameter "statusValues" and needs to be'.format(statusType))
             self.Status[statusType] = ConfigurationTypeFactory.CreateConfigurationType(statusType, statusValues[index])

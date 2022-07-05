@@ -1,4 +1,6 @@
 from mock import MagicMock, patch
+from nose_parameterized import parameterized
+import six
 import unittest
 
 class TestFailureActionConfigurationType(unittest.TestCase):
@@ -47,15 +49,17 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         self.assertEquals(config1.StringValue(), config2.StringValue())
         self.assertEquals(config1.Win32Value(), config2.Win32Value())
 
-    def TestInitWithNonListOfFailureActions(self):
-        action = FailureActionTypeFactory.CreateNoAction(long(1))
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestInitWithNonListOfFailureActions(self, int_type):
+        action = FailureActionTypeFactory.CreateNoAction(int_type(1))
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
         commandLine = FailureActionConfigurationCommandLineType('MyCommandLine')
         self.assertRaises(ValueError, FailureActionConfigurationType, action, resetPeriod, rebootMsg, commandLine)
 
-    def TestInitWithUnBoxedResetPeriod(self):
-        actions = [ FailureActionTypeFactory.CreateRestartAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestInitWithUnBoxedResetPeriod(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateRestartAction(int_type(1))]
         resetPeriod = 1
         resetPeriod1 = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
@@ -65,8 +69,9 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         self.assertEquals(config1.StringValue(), config2.StringValue())
         self.assertEquals(config1.Win32Value(), config2.Win32Value())
 
-    def TestInitWithUnBoxedRebootMessage(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestInitWithUnBoxedRebootMessage(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = 'MyRebootMessage'
         rebootMsg1 = FailureActionConfigurationRebootMessageType('MyRebootMessage')
@@ -76,8 +81,9 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         self.assertEquals(config1.StringValue(), config2.StringValue())
         self.assertEquals(config1.Win32Value(), config2.Win32Value())
 
-    def TestInitWithUnBoxedCommandLine(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestInitWithUnBoxedCommandLine(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
         commandLine = 'MyCommandLine'
@@ -87,8 +93,9 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         self.assertEquals(config1.StringValue(), config2.StringValue())
         self.assertEquals(config1.Win32Value(), config2.Win32Value())
 
-    def TestInitWithListOfFailureActions(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestInitWithListOfFailureActions(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
         commandLine = FailureActionConfigurationCommandLineType('MyCommandLine')
@@ -97,8 +104,9 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         self.assertEquals(failureActions.StringValue(), failureActions.StringValue())
         self.assertEquals(failureActions.Win32Value(), failureActions.Win32Value())
 
-    def TestEquals(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestEquals(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
         commandLine = FailureActionConfigurationCommandLineType('MyCommandLine')
@@ -106,8 +114,9 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         failureActions2 = FailureActionConfigurationType(actions, resetPeriod, rebootMsg, commandLine)
         self.assertEquals(failureActions1, failureActions2)
 
-    def TestNotEqualsCommandLine(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEqualsCommandLine(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
         commandLine = FailureActionConfigurationCommandLineType('MyCommandLine')
@@ -116,8 +125,9 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         failureActions2 = FailureActionConfigurationType(actions, resetPeriod, rebootMsg, commandLine2)
         self.assertNotEquals(failureActions1, failureActions2)
 
-    def TestNotEqualsRebootMessage(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEqualsRebootMessage(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
         rebootMsg1 = FailureActionConfigurationRebootMessageType('MyRebootMessage1')
@@ -126,8 +136,9 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         failureActions2 = FailureActionConfigurationType(actions, resetPeriod, rebootMsg1, commandLine)
         self.assertNotEquals(failureActions1, failureActions2)
 
-    def TestNotEqualsResetPeriod(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEqualsResetPeriod(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         resetPeriod2 = FailureActionConfigurationResetPeriodType(2)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
@@ -136,9 +147,10 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         failureActions2 = FailureActionConfigurationType(actions, resetPeriod2, rebootMsg, commandLine)
         self.assertNotEquals(failureActions1, failureActions2)
 
-    def TestNotEqualsActions(self):
-        actions = [ FailureActionTypeFactory.CreateNoAction(long(1))]
-        actions1 = [ FailureActionTypeFactory.CreateNoAction(long(2))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEqualsActions(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
+        actions1 = [ FailureActionTypeFactory.CreateNoAction(int_type(2))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         resetPeriod2 = FailureActionConfigurationResetPeriodType(2)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')
@@ -147,9 +159,10 @@ class TestFailureActionConfigurationType(unittest.TestCase):
         failureActions2 = FailureActionConfigurationType(actions1, resetPeriod, rebootMsg, commandLine)
         self.assertNotEquals(failureActions1, failureActions2)
 
-    def TestNotEqualsActions2(self):
-        actions = [ FailureActionTypeFactory.CreateRebootAction(long(1))]
-        actions1 = [ FailureActionTypeFactory.CreateNoAction(long(1))]
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEqualsActions2(self, int_type):
+        actions = [ FailureActionTypeFactory.CreateRebootAction(int_type(1))]
+        actions1 = [ FailureActionTypeFactory.CreateNoAction(int_type(1))]
         resetPeriod = FailureActionConfigurationResetPeriodType(1)
         resetPeriod2 = FailureActionConfigurationResetPeriodType(2)
         rebootMsg = FailureActionConfigurationRebootMessageType('MyRebootMessage')

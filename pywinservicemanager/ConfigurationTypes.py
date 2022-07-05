@@ -1,13 +1,13 @@
 import abc
+import six
 import win32service # pylint: disable=import-error
 
+six.add_metaclass(abc.ABCMeta)
 class ConfigurationBase(object):
     """ This class is the base class for all 'Configruations'. The basic idea of this
         base class is to 'box', the term being loosely used here, all of the constants to have easily readable
         and manipulated values that are mapped to their constant value.
     """
-    __metaclass__ = abc.ABCMeta
-
     @abc.abstractproperty
     def Mappings(self):
         '''
@@ -35,11 +35,12 @@ class ConfigurationBase(object):
         if not self._mappings:
             return value
 
-        if value != None and value not in self._mappings.values():
+        if value is not None and value not in six.itervalues(self._mappings):
             ConfigurationBase.__raiseMappingErrorException(self._mappings, self._className, value, isWin32Value=True)
-        for key, win32value in self._mappings.iteritems():
+        for key, win32value in six.iteritems(self._mappings):
             if win32value == value:
                 return key
+        return None
 
     def __validateMappedValue(self, value, listOfValidTypes):
         '''
@@ -49,7 +50,7 @@ class ConfigurationBase(object):
         ConfigurationBase.__validateTypes(value, self._className, listOfValidTypes)
         if not self._mappings:
             return
-        if value != None and value not in self._mappings.keys():
+        if value is not None and value not in six.iterkeys(self._mappings):
             ConfigurationBase.__raiseMappingErrorException(self._mappings, self._className, value, isWin32Value=False)
 
     @classmethod
@@ -97,7 +98,7 @@ class ConfigurationBase(object):
         if isWin32Value:
             validValues = ','.join([str(value) for value in mappingDictionary.values()])
         else:
-            validValues = ','.join(mappingDictionary.keys() + ['None'])
+            validValues = ','.join(list(six.iterkeys(mappingDictionary)) + ['None'])
 
         errorMsg = 'The parameter {0} is not a valid value. Valid values are : {1}. Value received {2}'
         raise ValueError(errorMsg.format(parameterName, validValues, valueRecieved))
@@ -152,12 +153,12 @@ class ConfigurationTypeFactory(object):
                         'ServiceFlags': ServiceFlagsType,
                         'TagId': TagIdType}
 
-        if typeName in typeMappings.keys():
+        if typeName in six.iterkeys(typeMappings):
             if typeName == 'FailureActions':
                 return FailureActionConfigurationType.GetInstanceFromDictionary(value)
             return typeMappings[typeName](value, isWin32Value)
 
-        validValues = ','.join(typeMappings.keys())
+        validValues = ','.join(six.iterkeys(typeMappings))
         errorMsg = 'The parameter typeName is not a valid value. Value Passed: {0}. Valid values are : {1}'
         raise ValueError(errorMsg.format(value, validValues))
 
@@ -196,7 +197,7 @@ class BinaryPathNameType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [str, unicode]
+        validTypes = [str, six.text_type]
         super(BinaryPathNameType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
@@ -245,7 +246,7 @@ class ControlsAcceptedType(ConfigurationBase):
     @property
     def Types(self):
         returnValue = []
-        for key, value in self._getPropertiesAsDict().iteritems():
+        for key, value in six.iteritems(self._getPropertiesAsDict()):
             if key == 'Types':
                 continue
             if (value & self.value) == value:
@@ -338,7 +339,7 @@ class DescriptionType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [unicode, str, type(None)]
+        validTypes = [six.text_type, str, type(None)]
         super(DescriptionType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
@@ -357,7 +358,7 @@ class DisplayNameType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [unicode, str]
+        validTypes = [six.text_type, str]
         super(DisplayNameType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
@@ -401,7 +402,7 @@ class FailureActionConfigurationCommandLineType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [str, unicode, type(None)]
+        validTypes = [str, six.text_type, type(None)]
         super(FailureActionConfigurationCommandLineType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
@@ -420,7 +421,7 @@ class FailureActionConfigurationRebootMessageType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [str, unicode, type(None)]
+        validTypes = [str, six.text_type, type(None)]
         super(FailureActionConfigurationRebootMessageType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
@@ -560,10 +561,10 @@ class FailureActionDelayType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [int, long, type(None)]
+        validTypes = list(six.integer_types) + [type(None)]
         super(FailureActionDelayType, self).__init__(self, value, validTypes, isWin32Value)
-        if not value  is None:
-            value = long(value)
+        if not value is None:
+            value = int(value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -660,10 +661,10 @@ class LoadOrderGroupType(ConfigurationBase):
 
     def __init__(self, value, isWin32Value=False):
         if isinstance(value, str):
-            value = unicode(value)
+            value = six.text_type(value)
         if value is None:
-            value = unicode('')
-        validTypes = [unicode, str, type(None)]
+            value = six.text_type('')
+        validTypes = [six.text_type, str, type(None)]
         super(LoadOrderGroupType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
@@ -681,11 +682,11 @@ class PreShutdownInfoType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [int, long, type(None)]
+        validTypes = list(six.integer_types) + [type(None)]
         super(PreShutdownInfoType, self).__init__(self, value, validTypes, isWin32Value)
 
         if isinstance(value, int):
-            value = long(value)
+            value = int(value)
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -741,7 +742,7 @@ class ServiceNameType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [unicode, str]
+        validTypes = [six.text_type, str]
         super(ServiceNameType, self).__init__(self, value, validTypes, isWin32Value)
 
     def StringValue(self):
@@ -783,7 +784,7 @@ class ServiceStartNameType(ConfigurationBase):
         return None
 
     def __init__(self, value, isWin32Value=False):
-        validTypes = [unicode, str, type(None)]
+        validTypes = [six.text_type, str, type(None)]
         super(ServiceStartNameType, self).__init__(self, value, validTypes, isWin32Value)
 
         if value is None:

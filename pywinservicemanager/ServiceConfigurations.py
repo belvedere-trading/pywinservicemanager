@@ -1,3 +1,4 @@
+import six
 import win32service # pylint: disable=import-error
 from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
 
@@ -18,7 +19,7 @@ class ServiceConfigurations(object):
 
     @property
     def Configurations(self):
-        return dict((key, value.StringValue()) for key, value in self.configurations.iteritems())
+        return dict((key, value.StringValue()) for key, value in six.iteritems(self.configurations))
 
     @staticmethod
     def GenerateFromOperatingSystem(serviceConfigManagerHandle, serviceName):
@@ -41,7 +42,7 @@ class ServiceConfigurations(object):
             savedConfigs = win32service.QueryServiceConfig(serviceHandle)
             returnConfigs = {'ServiceName': serviceName}
 
-            for key, value in ServiceConfigurations.indexesOfServiceConfig.iteritems():
+            for key, value in six.iteritems(ServiceConfigurations.indexesOfServiceConfig):
                 returnConfigs[key] = ConfigurationTypeFactory.CreateConfigurationType(key, savedConfigs[value], True)
         finally:
             if serviceHandle:
@@ -53,7 +54,7 @@ class ServiceConfigurations(object):
         configs = {'ServiceName': newServiceDefinition.ServiceName}
         newServiceDefinitionAsDict = vars(newServiceDefinition)
 
-        for key, _ in ServiceConfigurations.indexesOfServiceConfig.iteritems():
+        for key in six.iterkeys(ServiceConfigurations.indexesOfServiceConfig):
             value = newServiceDefinitionAsDict.get(key, None)
             # TagId is a value that is assigned by the OS, thus we just create a config type with the default
             if key == 'TagId':

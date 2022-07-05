@@ -238,6 +238,7 @@ class ServiceEntity(object):
             configsAreEqual = self.serviceConfigurations == other.serviceConfigurations
             configs2AreEqual = self.serviceConfigurations2 == other.serviceConfigurations2
             return configsAreEqual and configs2AreEqual
+        return False
 
     def __ne__(self, other):
         result = self.__eq__(other)
