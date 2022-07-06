@@ -45,3 +45,10 @@ class TestFailureActionDelayType(unittest.TestCase):
         t = FailureActionDelayType(value1)
         t2 = FailureActionDelayType(value2)
         self.assertNotEquals(t, t2)
+
+    def TestValueCastToLong(self):
+        value = 1
+        t = FailureActionDelayType(value)
+        long_type = long if six.PY2 else int #pylint: disable=undefined-variable
+        self.assertEquals(type(t.StringValue()), long_type)
+        self.assertEquals(type(t.Win32Value()), long_type)

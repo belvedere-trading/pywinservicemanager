@@ -45,3 +45,10 @@ class TestPreShutdownInfoType(unittest.TestCase):
         t = PreShutdownInfoType(value1)
         t2 = PreShutdownInfoType(value2)
         self.assertNotEquals(t, t2)
+
+    def TestValueCastToLong(self):
+        value = 1
+        t = PreShutdownInfoType(value)
+        long_type = long if six.PY2 else int #pylint: disable=undefined-variable
+        self.assertEquals(type(t.StringValue()), long_type)
+        self.assertEquals(type(t.Win32Value()), long_type)

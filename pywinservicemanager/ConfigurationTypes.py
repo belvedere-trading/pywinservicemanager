@@ -563,8 +563,8 @@ class FailureActionDelayType(ConfigurationBase):
     def __init__(self, value, isWin32Value=False):
         validTypes = list(six.integer_types) + [type(None)]
         super(FailureActionDelayType, self).__init__(self, value, validTypes, isWin32Value)
-        if not value is None:
-            value = int(value)
+        if self.value is not None and six.PY2:
+            self.value = long(self.value) #pylint: disable=undefined-variable
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
@@ -684,9 +684,8 @@ class PreShutdownInfoType(ConfigurationBase):
     def __init__(self, value, isWin32Value=False):
         validTypes = list(six.integer_types) + [type(None)]
         super(PreShutdownInfoType, self).__init__(self, value, validTypes, isWin32Value)
-
-        if isinstance(value, int):
-            value = int(value)
+        if isinstance(self.value, int) and six.PY2:
+            self.value = long(self.value) #pylint: disable=undefined-variable
 
     def StringValue(self):
         """Retrieve the data as it's string Value"""
