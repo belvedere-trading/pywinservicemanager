@@ -32,7 +32,7 @@ Installation
 =====================
 How to Run Unit Tests
 =====================
-1.  pip install nose, mock
+1.  pip install mock, nose, nose_parameterized
 2.  From the module's root directory, run 'nosetests .'
 
 ======================

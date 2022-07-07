@@ -61,7 +61,7 @@ class TestServiceConfigurations(unittest.TestCase):
         args = serviceDefinition.__dict__
         values = [None]*len(ServiceConfigurations.indexesOfServiceConfig)
 
-        for key,value in ServiceConfigurations.indexesOfServiceConfig.iteritems():
+        for key, value in ServiceConfigurations.indexesOfServiceConfig.items():
             if key == 'TagId':
                 values[value] = 0
             else:
@@ -125,7 +125,7 @@ class TestServiceConfigurations(unittest.TestCase):
     def TestEqualsIsFalse(self):
         configs = TestServiceConfigurations.GetNonExistentArgs()
         service = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)
-        for key, value in service.configurations.iteritems():
+        for key, value in service.configurations.items():
             if key == 'TagId':
                 continue
             service1 = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)
@@ -141,7 +141,7 @@ class TestServiceConfigurations(unittest.TestCase):
     def TestNotEqualsIsTrue(self):
         configs = TestServiceConfigurations.GetNonExistentArgs()
         service = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)
-        for key, value in service.configurations.iteritems():
+        for key, value in service.configurations.items():
             if key == 'TagId':
                 continue
             service1 = ServiceConfigurations.GenerateNewServiceFromServiceDefinition(newServiceDefinition=configs)

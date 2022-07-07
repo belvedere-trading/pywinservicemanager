@@ -37,16 +37,7 @@ load-plugins=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-# C0111: Missing docstring
-# W0142: Used * or ** magic
-# R0903: Too few public methods
-# R0801: Similar lines in x files (Jenkins Violations plugin doesn't handle this correctly)
-# R0921: Abstract class not referenced Used when an abstract class is not used as ancestor anywhere.
-# R0922: Abstract class is only referenced %s times Used when an abstract class is used less than X times as ancestor.
-# I0011: Locally disabling
-# I0013: Ignoring entire file
-# W0703: Catching too general Exception
-disable=W0142,R0903,R0801,R0921,R0922,I0011,I0013,W0703,C0111,C0103
+disable=broad-except,duplicate-code,invalid-name,locally-disabled,missing-docstring,star-args,try-except-raise,useless-object-inheritance
 
 
 

@@ -1,4 +1,6 @@
 from mock import MagicMock, patch
+from nose_parameterized import parameterized
+import six
 import unittest
 
 class TestFailureActionType(unittest.TestCase):
@@ -31,18 +33,20 @@ class TestFailureActionType(unittest.TestCase):
     def TestInitWithParametersOfNotValidValue(self):
         self.assertRaises(ValueError, FailureActionType, 'asdf', 1)
 
-    def TestEquals(self):
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestEquals(self, int_type):
         failureActionExecutionType = FailureActionExecutionType('RUN_COMMAND')
-        failureActionDelayType = FailureActionDelayType(long(1))
+        failureActionDelayType = FailureActionDelayType(int_type(1))
         value = FailureActionType(failureActionExecutionType, failureActionDelayType)
         value1 = FailureActionType(failureActionExecutionType, failureActionDelayType)
         self.assertEquals(value, value1)
 
-    def TestNotEquals(self):
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEquals(self, int_type):
         failureActionExecutionType = FailureActionExecutionType('REBOOT')
-        failureActionDelayType = FailureActionDelayType(long(1))
+        failureActionDelayType = FailureActionDelayType(int_type(1))
         failureActionExecutionType1 = FailureActionExecutionType('RESTART')
-        failureActionDelayType1 = FailureActionDelayType(long(2))
+        failureActionDelayType1 = FailureActionDelayType(int_type(2))
         value = FailureActionType(failureActionExecutionType, failureActionDelayType)
         value1 = FailureActionType(failureActionExecutionType1, failureActionDelayType1)
         self.assertNotEquals(value, value1)

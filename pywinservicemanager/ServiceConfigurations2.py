@@ -1,3 +1,4 @@
+import six
 import win32service # pylint: disable=import-error
 from pywinservicemanager.ConfigurationTypes import ConfigurationTypeFactory
 
@@ -16,7 +17,7 @@ class ServiceConfigurations2(object):
 
     @property
     def Configurations(self):
-        return dict((key, value.StringValue()) for key, value in self.configurations.iteritems())
+        return dict((key, value.StringValue()) for key, value in six.iteritems(self.configurations))
 
     @staticmethod
     def GenerateFromOperatingSystem(serviceConfigManagerHandle, serviceName):
@@ -36,7 +37,7 @@ class ServiceConfigurations2(object):
             serviceConfig2Handle = win32service.OpenService(serviceConfigManagerHandle,
                                                             serviceName.StringValue(),
                                                             win32service.SERVICE_QUERY_CONFIG)
-            for key, _ in ServiceConfigurations2.Mappings.iteritems():
+            for key in six.iterkeys(ServiceConfigurations2.Mappings):
                 configSetting = None
                 config2Enum = ServiceConfigurations2.Mappings[key]
                 try:
@@ -57,7 +58,7 @@ class ServiceConfigurations2(object):
     def __GetConfigurations2FromNonExistingService(newServiceDefinition):
         configSettings = {}
         newServiceDefinitioConfigs = vars(newServiceDefinition)
-        for configKey, _ in ServiceConfigurations2.Mappings.iteritems():
+        for configKey in six.iterkeys(ServiceConfigurations2.Mappings):
             configSettings[configKey] = newServiceDefinitioConfigs[configKey]
 
         return configSettings
@@ -80,10 +81,10 @@ class ServiceConfigurations2(object):
                                                             self.ServiceName.StringValue(),
                                                             win32service.SERVICE_CHANGE_CONFIG | win32service.SERVICE_START)
 
-            for key, value in ServiceConfigurations2.Mappings.iteritems():
+            for key, value in six.iteritems(ServiceConfigurations2.Mappings):
                 if currentConfigs[key] != self.configurations[key] and \
-                   self.configurations[key] != None and \
-                   self.configurations[key].StringValue() != None:
+                   self.configurations[key] is not None and \
+                   self.configurations[key].StringValue() is not None:
                     ServiceConfigurations2.__SetConfigrations(serviceConfig2Handle, value, self.configurations[key])
         except:
             raise

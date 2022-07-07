@@ -66,7 +66,7 @@ class TestServiceConfigurations2(unittest.TestCase):
                                                     binaryPathName ="C:\\Windows\\System32\\cmd.exe /c echo hello",
                                                     delayedAutoStartInfo=False,
                                                     failureFlag=False,
-                                                    preShutdownInfo = long(18000),
+                                                    preShutdownInfo = 18000,
                                                     serviceSIDInfo ='SID_TYPE_UNRESTRICTED',
                                                     description ='TestService',
                                                     failureActions=FailureActions)
@@ -78,7 +78,7 @@ class TestServiceConfigurations2(unittest.TestCase):
                   win32service.SERVICE_CONFIG_DESCRIPTION: 'TestService',
                   win32service.SERVICE_CONFIG_FAILURE_ACTIONS: {'Actions': ((1, 300), (3, 0)), 'Command': 'command', 'RebootMsg': 'rebootMessage', 'ResetPeriod': 300},
                   win32service.SERVICE_CONFIG_FAILURE_ACTIONS_FLAG: False,
-                  win32service.SERVICE_CONFIG_PRESHUTDOWN_INFO: 18000L,
+                  win32service.SERVICE_CONFIG_PRESHUTDOWN_INFO: 18000,
                   win32service.SERVICE_CONFIG_DELAYED_AUTO_START_INFO: False}
         return values[config]
 

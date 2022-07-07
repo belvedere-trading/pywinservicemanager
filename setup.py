@@ -1,3 +1,4 @@
+from __future__ import print_function
 from setuptools import setup, find_packages
 import subprocess
 import platform
@@ -9,11 +10,11 @@ def get_tagged_version():
     process = subprocess.Popen(['git', 'describe', '--abbrev=0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
     if process.returncode:
-        print 'Failed to get tagged version: {}'.format(err)
+        print('Failed to get tagged version: {}'.format(err))
         sys.exit(process.returncode)
     out = out.strip()
     if not re.match(tag_regex, out):
-        print 'Found invalid tag: {}'.format(out)
+        print('Found invalid tag: {}'.format(out))
         sys.exit(-1)
     return out[1:]
 

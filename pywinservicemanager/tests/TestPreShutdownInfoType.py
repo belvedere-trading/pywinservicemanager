@@ -1,4 +1,6 @@
 from mock import MagicMock, patch
+from nose_parameterized import parameterized
+import six
 import unittest
 
 class TestPreShutdownInfoType(unittest.TestCase):
@@ -22,27 +24,31 @@ class TestPreShutdownInfoType(unittest.TestCase):
     def TestInitWithParametersOfNotTypeString(self):
         self.assertRaises(ValueError, PreShutdownInfoType , 'asdf')
 
-    def TestInitWithLongParameters(self):
-        value = long(1)
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestInitWithIntTypeParameters(self, int_type):
+        value = int_type(1)
         t = PreShutdownInfoType(value)
         self.assertEquals(t.StringValue(), value)
         self.assertEquals(t.Win32Value(), value)
 
-    def TestInitWithIntParameters(self):
-        value = 1
-        t = PreShutdownInfoType(value)
-        self.assertEquals(t.StringValue(), value)
-        self.assertEquals(t.Win32Value(), value)
-
-    def TestEquals(self):
-        value = long(1)
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestEquals(self, int_type):
+        value = int_type(1)
         t = PreShutdownInfoType(value)
         t2 = PreShutdownInfoType(value)
         self.assertEquals(t, t2)
 
-    def TestNotEquals(self):
-        value1 = long(1)
-        value2 = long(2)
+    @parameterized.expand([t] for t in six.integer_types)
+    def TestNotEquals(self, int_type):
+        value1 = int_type(1)
+        value2 = int_type(2)
         t = PreShutdownInfoType(value1)
         t2 = PreShutdownInfoType(value2)
         self.assertNotEquals(t, t2)
+
+    def TestValueCastToLong(self):
+        value = 1
+        t = PreShutdownInfoType(value)
+        long_type = long if six.PY2 else int #pylint: disable=undefined-variable
+        self.assertEquals(type(t.StringValue()), long_type)
+        self.assertEquals(type(t.Win32Value()), long_type)
