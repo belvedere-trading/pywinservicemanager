@@ -2,6 +2,7 @@ from __future__ import print_function
 from setuptools import setup, find_packages
 import subprocess
 import platform
+import six
 import sys
 import re
 
@@ -12,7 +13,7 @@ def get_tagged_version():
     if process.returncode:
         print('Failed to get tagged version: {}'.format(err))
         sys.exit(process.returncode)
-    out = out.strip()
+    out = six.ensure_str(out).strip()
     if not re.match(tag_regex, out):
         print('Found invalid tag: {}'.format(out))
         sys.exit(-1)
